@@ -1,0 +1,10 @@
+{
+    "lmkmod:Unblocked": {
+        "PROPER": "突破",
+        "NAMES": [
+            "突破",
+            "突破的"
+        ],
+        "DESCRIPTION": "對目標造成了至少 #b1 點未被 #y格擋 的傷害"
+    }
+}

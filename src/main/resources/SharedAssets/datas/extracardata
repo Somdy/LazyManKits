@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CardDataSets>
+    <LMXCardData id = "LMKExample" prefix = "lmkmod:">
+        <SData sn = "2">
+            <id>TestCard2</id>
+            <damage base = "2" prmt = "1"/>
+            <block base = "6" prmt = "3"/>
+            <type>SKILL</type>
+            <target>ENEMY</target>
+            <rarity>BASIC</rarity>
+            <!--tags>STARTER_STRIKE, STRIKE</tags!-->
+            <text
+                    base = "Deal !B! damage. NL Gain !D! block."
+                    prmt = "true"
+            />
+            <attributes>
+                <exhaust>true</exhaust>
+            </attributes>
+            <customs>
+                <example>true</example>
+            </customs>
+        </SData>
+    </LMXCardData>
+</CardDataSets>

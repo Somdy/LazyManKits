@@ -1,0 +1,9 @@
+{
+    "lmkmod:Unblocked": {
+        "PROPER": "Unblocked",
+        "NAMES": [
+            "unblocked"
+        ],
+        "DESCRIPTION": "Deals at least #b1 unblocked damage to the target"
+    }
+}

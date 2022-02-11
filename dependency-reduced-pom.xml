@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>rs.lazymankits</groupId>
+  <artifactId>LazyManKits</artifactId>
+  <version>1.0.1</version>
+  <build>
+    <finalName>[STS]Lazy Man's Kits</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>com.megacrit.cardcrawl</groupId>
+      <artifactId>slaythespire</artifactId>
+      <version>${SlayTheSpire.version}</version>
+      <scope>system</scope>
+      <systemPath>${Steam.path}/common/SlayTheSpire/desktop-1.0.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.evacipated.cardcrawl</groupId>
+      <artifactId>ModTheSpire</artifactId>
+      <version>${ModTheSpire.version}</version>
+      <scope>system</scope>
+      <systemPath>${Steam.path}/workshop/content/646570/1605060445/ModTheSpire.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>basemod</groupId>
+      <artifactId>basemod</artifactId>
+      <version>${basemod.version}</version>
+      <scope>system</scope>
+      <systemPath>${Steam.path}/workshop/content/646570/1605833019/BaseMod.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>actlikeit</groupId>
+      <artifactId>actlikeit</artifactId>
+      <version>${ActLikeIt.version}</version>
+      <scope>system</scope>
+      <systemPath>${Steam.path}/workshop/content/646570/1934902042/actlikeit.jar</systemPath>
+    </dependency>
+  </dependencies>
+  <properties>
+    <LocalLib.path>D:\oData\Slay The Spire Project\MyMods\lib</LocalLib.path>
+    <Steam.path>D:\oData\Programme Files\Steam\steamapps</Steam.path>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <SpireCustomMod.path>D:\oData\Programme Files\Steam\steamapps\common\SlayTheSpire\mods</SpireCustomMod.path>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <ModTheSpire.version>3.16.0</ModTheSpire.version>
+    <basemod.version>5.22.0</basemod.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <SlayTheSpire.version>03-05-2020</SlayTheSpire.version>
+    <ActLikeIt.version>0.1.2</ActLikeIt.version>
+  </properties>
+</project>
+

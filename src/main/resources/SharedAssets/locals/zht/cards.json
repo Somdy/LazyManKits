@@ -1,0 +1,25 @@
+{
+  "lmkmod:TestCard": {
+    "NAME": "测试用牌",
+    "DESCRIPTION": "伤害： !D! NL 格挡 ： !B! .",
+    "UPGRADE_DESCRIPTION": "",
+    "EXTENDED_DESCRIPTION": [
+      "定向抽取3张攻击牌",
+      "定向抽取2张技能牌",
+      "定向抽取2张能力牌",
+      "定向抽取不知道多少张能力牌",
+      "随便抽多少张牌都行",
+      "没效果，别升",
+      ""
+    ]
+  },
+
+  "lmkmod:TestCard2": {
+    "NAME": "测试用牌2",
+    "DESCRIPTION": "伤害： !D! NL 格挡 ： !B! .",
+    "UPGRADE_DESCRIPTION": "",
+    "EXTENDED_DESCRIPTION": [
+      ""
+    ]
+  }
+}
