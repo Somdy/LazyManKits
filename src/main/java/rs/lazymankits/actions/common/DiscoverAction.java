@@ -8,6 +8,7 @@ import com.megacrit.cardcrawl.powers.watcher.MasterRealityPower;
 import com.megacrit.cardcrawl.screens.CardRewardScreen;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndAddToDiscardEffect;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndAddToHandEffect;
+import org.jetbrains.annotations.NotNull;
 import rs.lazymankits.abstracts.LMCustomGameAction;
 import rs.lazymankits.utils.LMSK;
 
@@ -113,7 +114,14 @@ public class DiscoverAction extends LMCustomGameAction {
         }
     }
     
+    @NotNull
+    @Deprecated
     public static List<AbstractCard> Genereate(int amount, Predicate<AbstractCard> predicate) {
+        return Generate(amount, predicate);
+    }
+    
+    @NotNull
+    public static List<AbstractCard> Generate(int amount, Predicate<AbstractCard> predicate) {
         List<AbstractCard> tmp = new ArrayList<>();
         while (tmp.size() < amount) {
             Optional<AbstractCard> opt = LMSK.ReturnTrulyRndCardInCombat(predicate);

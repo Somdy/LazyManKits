@@ -24,7 +24,6 @@ public class TestCard2 extends LMXDataCustomCard {
     }
 
     @Override
-    public void use(AbstractPlayer abstractPlayer, AbstractMonster abstractMonster) {
-
+    public void use(AbstractPlayer p, AbstractMonster m) {
     }
 }

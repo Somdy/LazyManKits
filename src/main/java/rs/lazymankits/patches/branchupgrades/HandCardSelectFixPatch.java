@@ -83,13 +83,15 @@ public class HandCardSelectFixPatch {
             if (CurrBranch < 0) {
                 CurrBranch = ((BranchableUpgradeCard) card).defaultBranch();
             }
-            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).possibleBranches();
+//            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).possibleBranches();
+            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).getPossibleBranches();
+            if (branches == null || branches.isEmpty()) return;
             int length = Math.min(Branches.length, branches.size());
             Last = length - 1;
             LMDebug.Log(card.name + " has " + (Last + 1) + " upgrade branches");
             for (int i = 0; i < length; i++) {
                 AbstractCard previewCard = card.makeStatEquivalentCopy();
-                ((BranchableUpgradeCard) previewCard).possibleBranches().get(i).upgrade();
+                ((BranchableUpgradeCard) previewCard).getPossibleBranches().get(i).upgrade();
                 previewCard.displayUpgrades();
                 Branches[i] = previewCard;
             }

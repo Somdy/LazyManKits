@@ -20,8 +20,11 @@ public class TestCard extends LMXDataCustomCard implements BranchableUpgradeCard
     public TestCard() {
         super(LMXCardDataReader.LMKExample, 1, "SharedAssets/images/cards/wild.png", CardColor.COLORLESS);
         cardStrings = CardCrawlGame.languagePack.getCardStrings(cardID);
-        rawDescription = cardStrings.DESCRIPTION;
+        rawDescription = "伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
         name = cardStrings.NAME;
+        setDamageValue(0, true);
+        setBlockValue(0, true);
+        setMagicValue(0, true);
         initializeDescription();
         initializeTitle();
     }
@@ -33,32 +36,75 @@ public class TestCard extends LMXDataCustomCard implements BranchableUpgradeCard
     
     @Override
     public void use(AbstractPlayer p, AbstractMonster m) {
-        addToBot(new DrawExptCardAction(2, c -> isCardTypeOf(c, CardType.SKILL)));
+        if (!upgraded) {
+            // 未升级时的效果
+        }
+        switch (chosenBranch()) {
+            case 0:
+                // 默认分支的效果
+                break;
+            case 1:
+                // 分支——1的效果
+                break;
+            case 2:
+                // 分支——2的效果
+                break;
+            case 3:
+                // 分支——3的效果
+                break;
+        }
     }
 
     @Override
     public List<UpgradeBranch> possibleBranches() {
         return new ArrayList<UpgradeBranch>() {{
             add(() -> {
-                upgradeName();
-                rawDescription = cardStrings.EXTENDED_DESCRIPTION[1];
-                initializeDescription();
+                if (!upgraded) {
+                    upgradeName("默认升级");
+                    rawDescription = "默认升级 NL 伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
+                    upgradeDamage(1);
+                    upgradeBlock(1);
+                    upgradeMagicNumber(1);
+                    initializeDescription();
+                }
             });
             add(() -> {
-                upgradeName();
-                rawDescription = cardStrings.EXTENDED_DESCRIPTION[0];
-                initializeDescription();
+                if (!upgraded) {
+                    upgradeName("分支——1");
+                    rawDescription = "伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
+                    upgradeDamage(0);
+                    upgradeBlock(0);
+                    upgradeMagicNumber(2);
+                    initializeDescription();
+                }
             });
             add(() -> {
-                upgradeName();
-                rawDescription = cardStrings.EXTENDED_DESCRIPTION[2];
-                initializeDescription();
+                if (!upgraded) {
+                    upgradeName("分支——2");
+                    rawDescription = "伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
+                    upgradeDamage(2);
+                    upgradeBlock(2);
+                    upgradeMagicNumber(0);
+                    initializeDescription();
+                }
+            });
+            add(() -> {
+                if (!upgraded) {
+                    upgradeName("分支——3");
+                    rawDescription = "伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
+                    upgradeDamage(3);
+                    upgradeBlock(3);
+                    upgradeMagicNumber(3);
+                    initializeDescription();
+                }
             });
         }};
     }
-
-    @Override
-    public int defaultBranch() {
-        return 0;
+    
+    protected void upgradeName(String name) {
+        timesUpgraded++;
+        upgraded = true;
+        this.name = name;
+        this.initializeTitle();
     }
 }

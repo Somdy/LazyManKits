@@ -10,12 +10,9 @@ import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
-import com.megacrit.cardcrawl.screens.select.GridCardSelectScreen;
 import javassist.CannotCompileException;
 import javassist.CtBehavior;
-import javassist.CtField;
 import javassist.expr.ExprEditor;
-import javassist.expr.FieldAccess;
 import javassist.expr.MethodCall;
 import rs.lazymankits.LMDebug;
 import rs.lazymankits.interfaces.cards.BranchableUpgradeCard;
@@ -67,7 +64,8 @@ public class SingleCardViewBranchPatch {
     
     public static void CheckIfCardBranchable(SingleCardViewPopup _inst) {
         AbstractCard card = GetHoveredCard();
-        if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch() && ViewingUpgrade()) {
+        if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch() 
+                && ViewingUpgrade()) {
             SetBranchesPreview(_inst, card);
         }
         if (OptFields.SelectingBranch.get(_inst) && Current >= 0 && Branches.length > 0) {
@@ -187,7 +185,9 @@ public class SingleCardViewBranchPatch {
             if (CurrBranch < 0) {
                 CurrBranch = ((BranchableUpgradeCard) card).defaultBranch();
             }
-            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).possibleBranches();
+//            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).possibleBranches();
+            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).getPossibleBranches();
+            if (branches == null || branches.isEmpty()) return;
             int length = Math.min(Branches.length, branches.size());
             if (!CardChecked) {
                 copy = card.makeStatEquivalentCopy();
@@ -195,7 +195,7 @@ public class SingleCardViewBranchPatch {
                 LMDebug.Log(card.name + " has " + (Last + 1) + " upgrade branches");
                 for (int i = 0; i < length; i++) {
                     AbstractCard previewCard = card.makeStatEquivalentCopy();
-                    ((BranchableUpgradeCard) previewCard).possibleBranches().get(i).upgrade();
+                    ((BranchableUpgradeCard) previewCard).getPossibleBranches().get(i).upgrade();
                     previewCard.displayUpgrades();
                     Branches[i] = previewCard;
                 }

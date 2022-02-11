@@ -9,11 +9,19 @@ import rs.lazymankits.annotations.Inencapsulated;
 import rs.lazymankits.patches.branchupgrades.BranchableUpgradePatch;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 @Inencapsulated
 public interface BranchableUpgradeCard extends CustomSavable<Integer> {
     List<UpgradeBranch> possibleBranches();
+    
+    default List<UpgradeBranch> getPossibleBranches() {
+        if (this instanceof AbstractCard) {
+            return possibleBranches();
+        }
+        return new ArrayList<>();
+    }
     
     default int defaultBranch() {
         if (canBranch())
@@ -23,7 +31,7 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
     
     default boolean canBranch() {
         if (this instanceof AbstractCard) {
-            return possibleBranches().size() > 0 && !((AbstractCard) this).upgraded;
+            return getPossibleBranches().size() > 0;
         }
         return false;
     }
@@ -72,7 +80,6 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
         if (this instanceof AbstractCard) {
             BranchableUpgradePatch.CardBranchField.ChosenBranch.set(this, branch);
             int times = BranchableUpgradePatch.GetBranchUpgradedTimes((AbstractCard) this);
-            LMDebug.Log(((AbstractCard) this).name + " has " + times + " times to upgrade");
             for (int i = 0; i < times; i++) {
                 upgradeCalledOnSL();
             }

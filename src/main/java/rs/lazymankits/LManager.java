@@ -147,7 +147,7 @@ public class LManager implements LMGameGeneralUtils, OnStartBattleSubscriber, Po
     @Override
     public void receiveEditCards() {
 //        BaseMod.addCard(new TestCard());
-//        BaseMod.addCard(new TestCard2());
+        BaseMod.addCard(new TestCard2());
     }
 
     @Override

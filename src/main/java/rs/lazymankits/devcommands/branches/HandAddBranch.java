@@ -34,7 +34,7 @@ public class HandAddBranch extends ConsoleCommand {
         int branchID = ((BranchableUpgradeCard) card).defaultBranch();
         if (tokens.length > branchIndex + 1 && ConvertHelper.tryParseInt(tokens[branchIndex + 1]) != null)
             branchID = ConvertHelper.tryParseInt(tokens[branchIndex + 1], branchID);
-        int maxBranch = ((BranchableUpgradeCard) card).possibleBranches().size() - 1;
+        int maxBranch = ((BranchableUpgradeCard) card).getPossibleBranches().size() - 1;
         int count = 1;
         if (tokens.length > branchIndex + 2 && ConvertHelper.tryParseInt(tokens[count + 2]) != null)
             count = ConvertHelper.tryParseInt(tokens[branchIndex + 2], 1);
