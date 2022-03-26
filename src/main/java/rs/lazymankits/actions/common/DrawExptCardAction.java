@@ -11,6 +11,7 @@ import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.powers.NoDrawPower;
+import rs.lazymankits.LMDebug;
 import rs.lazymankits.abstracts.LMCustomGameAction;
 
 import java.util.ArrayList;
@@ -22,12 +23,13 @@ public class DrawExptCardAction extends LMCustomGameAction {
     private boolean sorted;
     private boolean discardIncluded;
     private Predicate<AbstractCard> expt;
+    private TaoKe taokeAction;
     
     public DrawExptCardAction(AbstractCreature source, int amount, Predicate<AbstractCard> expt, AbstractGameAction action) {
         this.source = source;
         this.amount = amount;
         this.expt = expt;
-        this.followUpAction = action;
+        this.taokeAction = new TaoKe(action);
         this.discardIncluded = true;
         this.shuffleCheck = false;
         this.sorted = false;
@@ -41,6 +43,10 @@ public class DrawExptCardAction extends LMCustomGameAction {
     
     public DrawExptCardAction(int amount, Predicate<AbstractCard> expt) {
         this(AbstractDungeon.player, amount, expt, null);
+    }
+    
+    public DrawExptCardAction(int amount, Predicate<AbstractCard> expt, AbstractGameAction action) {
+        this(AbstractDungeon.player, amount, expt, action);
     }
     
     public DrawExptCardAction discardPileNotIncluded() {
@@ -88,11 +94,11 @@ public class DrawExptCardAction extends LMCustomGameAction {
                     }
                     else {
                         delta = amount - drawsize;
-                        addToTop(new DrawExptCardAction(delta, expt).setFollowupAction(followUpAction));
+                        addToTop(new DrawExptCardAction(source, delta, expt, taokeAction));
                         addToTop(new EmptyDeckShuffleAction());
                     }
                     if (drawsize > 0) {
-                        addToTop(new DrawExptCardAction(drawsize, expt).setFollowupAction(followUpAction));
+                        addToTop(new DrawExptCardAction(source, drawsize, expt, taokeAction));
                     }
                     amount = 0;
                     isDone = true;
@@ -107,7 +113,7 @@ public class DrawExptCardAction extends LMCustomGameAction {
                     sorted = true;
                 }
                 if (!cpr().drawPile.isEmpty()) {
-                    addToTop(new DrawCardAction(amount, followUpAction));
+                    addToTop(new DrawCardAction(amount, taokeAction));
                 }
                 isDone = true;
             }
@@ -141,5 +147,23 @@ public class DrawExptCardAction extends LMCustomGameAction {
         }
         cpr().drawPile.group.removeAll(tmp);
         cpr().drawPile.group.addAll(tmp);
+    }
+    
+    public static class TaoKe extends LMCustomGameAction {
+        private AbstractGameAction action;
+    
+        private TaoKe(AbstractGameAction action) {
+            if (action instanceof TaoKe)
+                this.action = ((TaoKe) action).action;
+            else 
+                this.action = action;
+        }
+        
+        @Override
+        public void update() {
+            isDone = true;
+            if (action != null)
+                action.update();
+        }
     }
 }

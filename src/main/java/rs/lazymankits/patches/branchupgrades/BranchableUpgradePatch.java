@@ -148,10 +148,10 @@ public class BranchableUpgradePatch {
                     Branches[Current].update();
                     UpdateButtons(_inst);
                 }
-                if (Prev > -1) {
+                if (Prev > -1 && Branches[Prev] != null) {
                     Branches[Prev].update();
                 }
-                if (Next > -1) {
+                if (Next > -1 && Branches[Next] != null) {
                     Branches[Next].update();
                 }
             }
@@ -254,7 +254,7 @@ public class BranchableUpgradePatch {
             Branches[Current].updateHoverLogic();
             Branches[Current].renderCardTip(sb);
             Branches[Current].beginGlowing();
-            if (Prev > -1) {
+            if (Prev > -1 && Branches[Prev] != null) {
                 Branches[Prev].drawScale = 0.65F;
                 Branches[Prev].current_x = Settings.WIDTH * 0.64F;
                 Branches[Prev].current_y = Settings.HEIGHT * 0.8F;
@@ -266,7 +266,7 @@ public class BranchableUpgradePatch {
                 Branches[Prev].updateHoverLogic();
                 Branches[Prev].renderCardTip(sb);
             }
-            if (Next > -1) {
+            if (Next > -1 && Branches[Next] != null) {
                 Branches[Next].drawScale = 0.65F;
                 Branches[Next].current_x = Settings.WIDTH * 0.64F;
                 Branches[Next].current_y = Settings.HEIGHT * 0.18F;

@@ -20,6 +20,6 @@ public class LMDebug {
 
     public static void deLog(@NotNull Object who, Object what) {
         logger = LogManager.getLogger(who.getClass().getName());
-        logger.info(MARK_LINE_START + what);
+        logger.info(what);
     }
 }
