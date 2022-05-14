@@ -1,12 +1,15 @@
 package rs.lazymankits.interfaces.cards;
 
 import basemod.abstracts.CustomSavable;
+import com.badlogic.gdx.math.MathUtils;
 import com.google.gson.reflect.TypeToken;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import org.apache.commons.lang3.NotImplementedException;
 import rs.lazymankits.LMDebug;
 import rs.lazymankits.annotations.Inencapsulated;
 import rs.lazymankits.patches.branchupgrades.BranchableUpgradePatch;
+import rs.lazymankits.utils.LMSK;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -62,6 +65,27 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
     default void upgradeCalledOnSL() {
         if (this instanceof AbstractCard)
             ((AbstractCard) this).upgrade();
+    }
+    
+    default boolean allowBranchWhenUpgradeBy(int msg) {
+        return true;
+    }
+    
+    default int branchForRandomUpgrading(int msg) {
+        return randomBranch(true);
+    }
+    
+    default int getBranchForRandomUpgrading(int msg) {
+        if (this instanceof AbstractCard)
+            return branchForRandomUpgrading(msg);
+        return -1;
+    }
+    
+    default int randomBranch(boolean useRng) {
+        if (useRng) {
+            return LMSK.CardRandomRng().random(getPossibleBranches().size() - 1);
+        }
+        return MathUtils.random(getPossibleBranches().size() - 1);
     }
 
     @Override

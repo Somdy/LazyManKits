@@ -9,11 +9,11 @@ import rs.lazymankits.interfaces.cards.BranchableUpgradeCard;
 
 import java.util.ArrayList;
 
-public class HandBranch extends ConsoleCommand {
+public class BranchCMD extends ConsoleCommand {
     
-    public HandBranch() {
-        followup.put("add", HandAddBranch.class);
-        //followup.put("upgrade", HandUpgradeBranch.class);
+    public BranchCMD() {
+        followup.put("hand", HandAddBranch.class);
+        followup.put("deck", DeckAddBranch.class);
         requiresPlayer = true;
         simpleCheck = true;
     }
@@ -31,8 +31,8 @@ public class HandBranch extends ConsoleCommand {
     public static void DisplayHandBranchOpts() {
         DevConsole.couldNotParse();
         DevConsole.log("Options are: ");
-        DevConsole.log("* add [id] {branch index} {count}");
-        DevConsole.log("* upgrade [id] {branch index} Deprecated");
+        DevConsole.log("* hand [id] {branch index} {count}");
+        DevConsole.log("* deck [id] {branch index} {count}");
         DevConsole.log("Note that branch index starts at 0");
     }
     

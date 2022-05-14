@@ -116,18 +116,31 @@ public class DiscoverAction extends LMCustomGameAction {
     
     @NotNull
     @Deprecated
-    public static List<AbstractCard> Genereate(int amount, Predicate<AbstractCard> predicate) {
-        return Generate(amount, predicate);
+    public static List<AbstractCard> Genereate(int amount, Predicate<AbstractCard> expt) {
+        return Generate(amount, expt);
     }
     
     @NotNull
-    public static List<AbstractCard> Generate(int amount, Predicate<AbstractCard> predicate) {
+    public static List<AbstractCard> Generate(int amount, Predicate<AbstractCard> expt) {
         List<AbstractCard> tmp = new ArrayList<>();
         while (tmp.size() < amount) {
-            Optional<AbstractCard> opt = LMSK.ReturnTrulyRndCardInCombat(predicate);
+            Optional<AbstractCard> opt = LMSK.ReturnTrulyRndCardInCombat(expt);
             opt.ifPresent(card -> {
                 if (tmp.stream().noneMatch(c -> c.cardID.equals(card.cardID)))
                     tmp.add(card);
+            });
+        }
+        return tmp;
+    }
+    
+    @NotNull
+    public static List<AbstractCard> Generate(int amount, List<AbstractCard> range, Predicate<AbstractCard> predicate) {
+        List<AbstractCard> tmp = new ArrayList<>();
+        while (tmp.size() < amount) {
+            Optional<AbstractCard> opt = LMSK.GetRandom(range, LMSK.CardRandomRng());
+            opt.ifPresent(card -> {
+                if (tmp.stream().noneMatch(c -> c.cardID.equals(card.cardID)))
+                    tmp.add(card.makeStatEquivalentCopy());
             });
         }
         return tmp;

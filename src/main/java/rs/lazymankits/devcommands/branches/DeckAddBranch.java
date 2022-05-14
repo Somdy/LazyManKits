@@ -4,15 +4,18 @@ import basemod.DevConsole;
 import basemod.devcommands.ConsoleCommand;
 import basemod.devcommands.hand.Hand;
 import basemod.helpers.ConvertHelper;
+import com.megacrit.cardcrawl.actions.animations.VFXAction;
 import com.megacrit.cardcrawl.actions.common.MakeTempCardInHandAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.CardLibrary;
+import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndObtainEffect;
 import rs.lazymankits.interfaces.cards.BranchableUpgradeCard;
 import rs.lazymankits.utils.LMSK;
 
 import java.util.ArrayList;
 
-public class HandAddBranch extends ConsoleCommand {
+public class DeckAddBranch extends ConsoleCommand {
     
     @Override
     protected void execute(String[] tokens, int depth) {
@@ -50,7 +53,7 @@ public class HandAddBranch extends ConsoleCommand {
         card.upgrade();
         for (int i = 0; i < count; i++) {
             AbstractCard copy = card.makeStatEquivalentCopy();
-            LMSK.AddToBot(new MakeTempCardInHandAction(copy, 1));
+            LMSK.AddToBot(new VFXAction(new ShowCardAndObtainEffect(copy, Settings.WIDTH / 2F, Settings.HEIGHT / 2F)));
         }
     }
     
