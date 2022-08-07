@@ -1,13 +1,18 @@
 package rs.lazymankits;
 
 import basemod.BaseMod;
+import basemod.helpers.RelicType;
 import basemod.interfaces.*;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.localization.CardStrings;
+import com.megacrit.cardcrawl.localization.RelicStrings;
+import com.megacrit.cardcrawl.localization.UIStrings;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import rs.lazymankits.abstracts.LMDynamicVar;
 import rs.lazymankits.annotations.Encapsulated;
 import rs.lazymankits.cards.TestCard;
@@ -20,6 +25,7 @@ import rs.lazymankits.listeners.DrawCardListener;
 import rs.lazymankits.listeners.TurnEventListener;
 import rs.lazymankits.listeners.UseCardListener;
 import rs.lazymankits.managers.LMDynVarMgr;
+import rs.lazymankits.relics.TestRelic;
 import rs.lazymankits.utils.LMGameFps;
 import rs.lazymankits.utils.LMGameGeneralUtils;
 import rs.lazymankits.utils.LMKeyword;
@@ -28,7 +34,7 @@ import java.util.Map;
 
 @SpireInitializer
 public class LManager implements LMGameGeneralUtils, OnStartBattleSubscriber, PostBattleSubscriber, PostUpdateSubscriber, 
-        EditKeywordsSubscriber, EditCardsSubscriber, EditStringsSubscriber {
+        EditKeywordsSubscriber, EditCardsSubscriber, EditStringsSubscriber, EditRelicsSubscriber {
     private static boolean EverythingInitialized;
     private static String modid = "lmkmod:";
     
@@ -71,6 +77,11 @@ public class LManager implements LMGameGeneralUtils, OnStartBattleSubscriber, Po
     @Encapsulated
     public static void Unsub(LMSubscriberInterface sub) {
         LMSubscriber.Unsub(sub);
+    }
+    
+    @NotNull
+    public static final String Prefix(String str) {
+        return modid + str;
     }
     
     public static boolean ReadLMXCardData(Class<?> clazz, String path, String id, String uniqueID) {
@@ -146,13 +157,20 @@ public class LManager implements LMGameGeneralUtils, OnStartBattleSubscriber, Po
 
     @Override
     public void receiveEditCards() {
-//        BaseMod.addCard(new TestCard());
+        BaseMod.addCard(new TestCard());
 //        BaseMod.addCard(new TestCard2());
+    }
+    
+    @Override
+    public void receiveEditRelics() {
+        BaseMod.addRelic(new TestRelic(), RelicType.SHARED);
     }
 
     @Override
     public void receiveEditStrings() {
         String lang = getSupportedLanguage(Settings.language);
         BaseMod.loadCustomStringsFile(CardStrings.class, "SharedAssets/locals/" + lang + "/cards.json");
+        BaseMod.loadCustomStringsFile(RelicStrings.class, "SharedAssets/locals/" + lang + "/relics.json");
+        BaseMod.loadCustomStringsFile(UIStrings.class, "SharedAssets/locals/" + lang + "/ui.json");
     }
 }

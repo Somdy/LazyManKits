@@ -9,12 +9,13 @@ import rs.lazymankits.LManager;
 import rs.lazymankits.actions.common.DrawExptCardAction;
 import rs.lazymankits.data.LMXCardDataReader;
 import rs.lazymankits.interfaces.cards.BranchableUpgradeCard;
+import rs.lazymankits.interfaces.cards.SwappableUpgBranchCard;
 import rs.lazymankits.interfaces.cards.UpgradeBranch;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestCard extends LMXDataCustomCard implements BranchableUpgradeCard {
+public class TestCard extends LMXDataCustomCard implements BranchableUpgradeCard, SwappableUpgBranchCard {
     public static CardStrings cardStrings;
     
     public TestCard() {
@@ -91,7 +92,7 @@ public class TestCard extends LMXDataCustomCard implements BranchableUpgradeCard
             add(() -> {
                 if (!upgraded) {
                     upgradeName("分支——3");
-                    rawDescription = "伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
+                    rawDescription = "非默认升级 NL 伤害： !D! NL 格挡 ： !B! NL 特殊值： !M! .";
                     upgradeDamage(3);
                     upgradeBlock(3);
                     upgradeMagicNumber(3);

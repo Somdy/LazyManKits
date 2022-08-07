@@ -6,12 +6,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.lib.*;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.cards.CardGroup;
-import com.megacrit.cardcrawl.cards.CardSave;
-import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
-import com.megacrit.cardcrawl.helpers.CardLibrary;
 import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
@@ -22,57 +19,51 @@ import javassist.CannotCompileException;
 import javassist.CtBehavior;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
+import org.jetbrains.annotations.Nullable;
 import rs.lazymankits.LMDebug;
 import rs.lazymankits.interfaces.cards.BranchableUpgradeCard;
+import rs.lazymankits.interfaces.cards.SwappableUpgBranchCard;
 import rs.lazymankits.interfaces.cards.UpgradeBranch;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-public class BranchableUpgradePatch {
-    
-    @SpirePatch(clz = AbstractCard.class, method = SpirePatch.CLASS)
-    public static class CardBranchField {
-        public static SpireField<Integer> ChosenBranch = new SpireField<>(() -> -1);
-    }
-    
-    @SpirePatch(clz = CardSave.class, method = SpirePatch.CLASS)
-    public static class CardSaveField {
-        public static SpireField<Integer> ChosenBranch = new SpireField<>(() -> -1);
-    }
+
+
+public class SwappableLogicPatch {
+    public static boolean UsingSwappableLogic = false;
     
     @SpirePatch(clz = GridCardSelectScreen.class, method = SpirePatch.CLASS)
     public static class OptFields {
-        public static SpireField<Boolean> SelectingBranch = new SpireField<>(() -> false);
+        public static SpireField<Boolean> SwappingBranch = new SpireField<>(() -> false);
         //public static SpireField<Boolean> ForBranchingUpgrades = new SpireField<>(() -> false);
         public static SpireField<Hitbox> PrevBtn = new SpireField<>(() -> null);
         public static SpireField<Hitbox> NextBtn = new SpireField<>(() -> null);
     }
     
+    public static final Map<AbstractCard, AbstractCard> branchMap = new HashMap<>();
     public static final int MAX_BRANCHES = 15;
     public static int CurrBranch = -1;
+    private static int OldBranch = -1;
     public static AbstractCard[] Branches = new AbstractCard[MAX_BRANCHES];
     public static int Current = -1;
     public static int Prev = -1;
     public static int Next = -1;
     public static int Last = MAX_BRANCHES - 1;
     
-    public static boolean IsSelectingBranch() {
-        return OptFields.SelectingBranch.get(AbstractDungeon.gridSelectScreen);
-    }
-    
     public static void CheckIfButtonsReady(GridCardSelectScreen _inst) {
-        if (OptFields.SelectingBranch.get(_inst)) {
+        if (OptFields.SwappingBranch.get(_inst)) {
             if (OptFields.PrevBtn.get(_inst) == null) {
                 OptFields.PrevBtn.set(_inst, new Hitbox(60, 60));
-                OptFields.PrevBtn.get(_inst).move(Settings.WIDTH * 0.75F, Settings.HEIGHT / 2F + 50F * Settings.scale);
+                OptFields.PrevBtn.get(_inst)
+                        .move(Settings.WIDTH * 0.75F, Settings.HEIGHT / 2F + 50F * Settings.scale);
             }
             if (OptFields.NextBtn.get(_inst) == null) {
                 OptFields.NextBtn.set(_inst, new Hitbox(60, 60));
-                OptFields.NextBtn.get(_inst).move(Settings.WIDTH * 0.75F, Settings.HEIGHT / 2F - 50F * Settings.scale);
+                OptFields.NextBtn.get(_inst)
+                        .move(Settings.WIDTH * 0.75F, Settings.HEIGHT / 2F - 50F * Settings.scale);
             }
         }
     }
@@ -82,14 +73,14 @@ public class BranchableUpgradePatch {
         @SpireInsertPatch(locator = Locator.class)
         public static void Insert(GridCardSelectScreen _inst) {
             AbstractCard card = GetHoveredCard();
-            if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch()) {
+            if (card instanceof SwappableUpgBranchCard && ((SwappableUpgBranchCard) card).swappable()) {
                 SetBranchesPreview(_inst, card);
             }
         }
         private static class Locator extends SpireInsertLocator {
             @Override
             public int[] Locate(CtBehavior ctMethodToPatch) throws Exception {
-                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, 
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class,
                         "makeStatEquivalentCopy");
                 return LineFinder.findInOrder(ctMethodToPatch, matcher);
             }
@@ -97,23 +88,18 @@ public class BranchableUpgradePatch {
     }
     
     public static void SetBranchesPreview(GridCardSelectScreen _inst, AbstractCard card) {
-        if (SwappableLogicPatch.UsingSwappableLogic && OptFields.SelectingBranch.get(_inst)) {
-            OptFields.SelectingBranch.set(_inst, false);
-        }
-        if (card instanceof BranchableUpgradeCard && !SwappableLogicPatch.UsingSwappableLogic) {
-            if (CurrBranch < 0) {
-                CurrBranch = ((BranchableUpgradeCard) card).defaultBranch();
-            }
+        if (card instanceof SwappableUpgBranchCard && UsingSwappableLogic) {
 //            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).possibleBranches();
-            List<UpgradeBranch> branches = ((BranchableUpgradeCard) card).getPossibleBranches();
+            List<UpgradeBranch> branches = ((SwappableUpgBranchCard) card).getSwappableBranches();
+            OldBranch = ((SwappableUpgBranchCard) card).getChosenBranchIndex();
+            if (CurrBranch < 0) CurrBranch = 0;
             if (branches == null || branches.isEmpty()) return;
             int length = Math.min(Branches.length, branches.size());
             Last = length - 1;
-            LMDebug.Log(card.name + " has " + (Last + 1) + " upgrade branches");
+            LMDebug.Log(card.name + " has " + (Last + 1) + " swappable branches");
             for (int i = 0; i < length; i++) {
-                AbstractCard previewCard = card.makeStatEquivalentCopy();
-//                ((BranchableUpgradeCard) previewCard).possibleBranches().get(i).upgrade();
-                ((BranchableUpgradeCard) previewCard).getPossibleBranches().get(i).upgrade();
+                AbstractCard previewCard = ((SwappableUpgBranchCard) card).getPlainSourceCopy();
+                ((SwappableUpgBranchCard) previewCard).getSwappableBranches(OldBranch).get(i).upgrade();
                 previewCard.displayUpgrades();
                 Branches[i] = previewCard;
             }
@@ -128,8 +114,8 @@ public class BranchableUpgradePatch {
             } else {
                 Next = -1;
             }
-            OptFields.SelectingBranch.set(_inst, true);
-            LMDebug.Log("Current branch: " + Current + ", prev: " + Prev + ", next: " + Next);
+            OptFields.SwappingBranch.set(_inst, true);
+            LMDebug.Log("Current swap: " + Current + ", prev: " + Prev + ", next: " + Next);
             for (int i = 0; i < length; i++) {
                 if (i != Current && i != Prev && i != Next) {
                     Branches[i].drawScale = 0.25F;
@@ -146,7 +132,7 @@ public class BranchableUpgradePatch {
     public static class UpdateBranchCards {
         @SpireInsertPatch(rloc = 199)
         public static void Insert(GridCardSelectScreen _inst) {
-            if (OptFields.SelectingBranch.get(_inst)) {
+            if (OptFields.SwappingBranch.get(_inst)) {
                 if (Branches[Current] != null) {
                     Branches[Current].update();
                     UpdateButtons(_inst);
@@ -226,17 +212,17 @@ public class BranchableUpgradePatch {
                 public void edit(MethodCall m) throws CannotCompileException {
                     if (m.getClassName().equals(GridCardSelectScreen.class.getName()) && m.getMethodName().equals("renderArrows")) {
                         m.replace("$_ = $proceed($$); " +
-                                "if (" + BranchableUpgradePatch.class.getName() + ".RenderingBranches(this, sb)) {return;}");
+                                "if (" + SwappableLogicPatch.class.getName() + ".RenderingSwappableBranches(this, sb)) {return;}");
                     }
                 }
             };
         }
     }
     
-    public static boolean RenderingBranches(GridCardSelectScreen _inst, SpriteBatch sb) {
+    public static boolean RenderingSwappableBranches(GridCardSelectScreen _inst, SpriteBatch sb) {
         AbstractCard card = GetHoveredCard();
-        if (_inst.forUpgrade && card instanceof BranchableUpgradeCard
-                && ((BranchableUpgradeCard) card).canBranch() && !card.upgraded) {
+        if (OptFields.SwappingBranch.get(_inst) && card instanceof SwappableUpgBranchCard
+                && ((SwappableUpgBranchCard) card).swappable()) {
             card.current_x = Settings.WIDTH * 0.35F;
             card.current_y = Settings.HEIGHT / 2F;
             card.target_x = Settings.WIDTH * 0.35F;
@@ -245,7 +231,7 @@ public class BranchableUpgradePatch {
             card.render(sb);
             card.updateHoverLogic();
             //_inst.upgradePreviewCard = null; // TODO: Not allowed, causing a npe
-            if (Branches[Current].hb.hovered)
+            if (Branches[Current].hb.hovered || (Prev <= -1 && Next <= -1))
                 Branches[Current].drawScale = 1F;
             else
                 Branches[Current].drawScale = 0.8F;
@@ -282,8 +268,8 @@ public class BranchableUpgradePatch {
                 Branches[Next].updateHoverLogic();
                 Branches[Next].renderCardTip(sb);
             }
-            if (Prev <= -1 && Next <= -1)
-                LMDebug.Log(card.name + " should be branchable but has no any branches available");
+//            if (Prev <= -1 && Next <= -1)
+//                LMDebug.Log(card.name + " should be branchable but has no any branches available");
             if (!PeekButton.isPeeking && (_inst.forUpgrade || _inst.forTransform || _inst.forPurge
                     || _inst.isJustForConfirming || _inst.anyNumber)) {
                 _inst.confirmButton.render(sb);
@@ -299,6 +285,16 @@ public class BranchableUpgradePatch {
         return false;
     }
     
+    @SpirePatch(clz = GridCardSelectScreen.class, method = "renderArrows")
+    public static class RenderSelectArrows {
+        @SpirePostfixPatch
+        public static void Postfix(GridCardSelectScreen _inst, SpriteBatch sb) {
+            if (OptFields.SwappingBranch.get(_inst)) {
+                RenderPrevAndNextArrows(_inst, sb);
+            }
+        }
+    }
+    
     public static void RenderPrevAndNextArrows(GridCardSelectScreen _inst, SpriteBatch sb) {
         if (OptFields.NextBtn.get(_inst) != null) {
             Hitbox box = OptFields.NextBtn.get(_inst);
@@ -309,8 +305,8 @@ public class BranchableUpgradePatch {
                 scale = Settings.scale;
             }
             box.render(sb);
-            sb.draw(ImageMaster.UPGRADE_ARROW, box.x, box.y, 32F, 32F, 64F, 64F, 
-                    scale, scale, -90F, 0, 0, 64, 64, 
+            sb.draw(ImageMaster.UPGRADE_ARROW, box.x, box.y, 32F, 32F, 64F, 64F,
+                    scale, scale, -90F, 0, 0, 64, 64,
                     false, false);
             sb.setColor(Color.WHITE.cpy());
         }
@@ -330,55 +326,51 @@ public class BranchableUpgradePatch {
         }
     }
     
-    @SpirePatch(clz = GridCardSelectScreen.class, method = "renderArrows")
-    public static class RenderSelectArrows {
-        @SpirePostfixPatch
-        public static void Postfix(GridCardSelectScreen _inst, SpriteBatch sb) {
-            if (OptFields.SelectingBranch.get(_inst)) {
-                RenderPrevAndNextArrows(_inst, sb);
-            }
-        }
-    }
-    
     @SpirePatch(clz = GridCardSelectScreen.class, method = "cancelUpgrade")
     public static class CancelUpgradeCheck {
         @SpirePrefixPatch
         public static void Prefix(GridCardSelectScreen _inst) {
-            OptFields.SelectingBranch.set(_inst, false);
+            OptFields.SwappingBranch.set(_inst, false);
             //HandOptFields.ForBranchingUpgrades.set(_inst, false);
             CurrBranch = -1;
             Current = -1;
         }
     }
-
+    
     @SpirePatch(clz = AbstractDungeon.class, method = "closeCurrentScreen")
     public static class CloseScreeenCheck {
         @SpirePrefixPatch
         public static void Prefix() {
             if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.GRID
-                    && OptFields.SelectingBranch.get(AbstractDungeon.gridSelectScreen)) {
-                OptFields.SelectingBranch.set(AbstractDungeon.gridSelectScreen, false);
+                    && OptFields.SwappingBranch.get(AbstractDungeon.gridSelectScreen)) {
+                OptFields.SwappingBranch.set(AbstractDungeon.gridSelectScreen, false);
                 //HandOptFields.ForBranchingUpgrades.set(_inst, false);
                 CurrBranch = -1;
                 Current = -1;
             }
         }
     }
-
+    
     @SpirePatch(clz = GridCardSelectScreen.class, method = "update")
     public static class ConfirmBranchingCheck {
         @SpireInsertPatch(locator = Locator.class)
         public static void Insert(GridCardSelectScreen _inst) {
             AbstractCard card = GetHoveredCard();
-            if (card instanceof BranchableUpgradeCard && OptFields.SelectingBranch.get(_inst) && CurrBranch >= 0) {
-                LMDebug.Log("Final chosen branch: " + CurrBranch);
-                ((BranchableUpgradeCard) card).setChosenBranch(CurrBranch);
+            if (card instanceof SwappableUpgBranchCard && OptFields.SwappingBranch.get(_inst) && CurrBranch >= 0) {
+                AbstractCard source = ((SwappableUpgBranchCard) card).getPlainSourceCopy();
+                if (source instanceof BranchableUpgradeCard) {
+                    int realBranch = CurrBranch >= OldBranch ? CurrBranch + 1 : CurrBranch;
+                    LMDebug.Log("Final chosen branch: " + realBranch);
+                    ((BranchableUpgradeCard) source).setChosenBranch(realBranch);
+                    source.upgrade();
+                    branchMap.put(card, source);
+                }
             }
         }
         private static class Locator extends SpireInsertLocator {
             @Override
             public int[] Locate(CtBehavior ctMethodToPatch) throws Exception {
-                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractDungeon.class, 
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractDungeon.class,
                         "closeCurrentScreen");
                 int[] totalTimes = LineFinder.findAllInOrder(ctMethodToPatch, matcher);
                 int lastTime = totalTimes.length - 1;
@@ -386,7 +378,7 @@ public class BranchableUpgradePatch {
             }
         }
     }
-
+    
     public static AbstractCard GetHoveredCard() {
         try {
             Field hoveredCard = AbstractDungeon.gridSelectScreen.getClass().getDeclaredField("hoveredCard");
@@ -398,94 +390,12 @@ public class BranchableUpgradePatch {
         }
     }
     
-    @SpirePatch(clz = AbstractCard.class, method = "makeStatEquivalentCopy")
-    public static class FixEverythingAboutFuckingShitMakeStatEquivalentCopyNoneShouldUseRawOrAnythingToCompletelyOverrideThisDamnMethod {
-        @SpireInsertPatch(locator = Locator.class, localvars = {"card"})
-        public static void Insert(AbstractCard _inst, AbstractCard card) {
-            if (_inst instanceof BranchableUpgradeCard) {
-                int branch = ((BranchableUpgradeCard) _inst).chosenBranch();
-                if (branch > -1) {
-                    CardBranchField.ChosenBranch.set(card, branch);
-                }
-            }
+    @Nullable
+    public static AbstractCard GetChosenBranch(AbstractCard source) {
+        if (branchMap.containsKey(source)) {
+            return branchMap.remove(source);
         }
-        private static class Locator extends SpireInsertLocator {
-            @Override
-            public int[] Locate(CtBehavior ctMethodToPatch) throws Exception {
-                Matcher.FieldAccessMatcher matcher = new Matcher.FieldAccessMatcher(AbstractCard.class, "timesUpgraded");
-                return LineFinder.findInOrder(ctMethodToPatch, matcher);
-            }
-        }
-    }
-    
-    /*@SpirePatch(clz = CardGroup.class, method = "getCardDeck")
-    public static class SaveChosenBranchPatch {
-        @SpireInstrumentPatch
-        public static ExprEditor Instrument() {
-            return new ExprEditor() {
-                @Override
-                public void edit(MethodCall m) throws CannotCompileException {
-                    if (m.getClassName().equals(ArrayList.class.getName()) && m.getMethodName().equals("add")) {
-                        m.replace("if (!" + BranchableUpgradePatch.class.getName()
-                                + ".SaveBranchUpgrade(card, retVal)) {$_ = $proceed($$);}");
-                    }
-                }
-            };
-        }
-    }
-    
-    public static boolean SaveBranchUpgrade(AbstractCard card, ArrayList<CardSave> saves) {
-        if (card instanceof BranchableUpgradeCard) {
-            CardSave save = new BranchableCardSave(card.cardID, card.timesUpgraded, card.misc, 
-                    ((BranchableUpgradeCard) card).chosenBranch());
-            saves.add(save);
-            return true;
-        }
-        return false;
-    }
-
-    @SpirePatch(clz = CardLibrary.class, method = "getCopy", paramtypez = {String.class, int.class, int.class})
-    public static class LoadChosenBranchPatch {
-        @SpireInsertPatch(rloc = 9, localvars = {"retVal"})
-        public static void Insert(String key, int upgradeTime, int misc, AbstractCard retVal) {
-            if (retVal instanceof BranchableUpgradeCard && CardCrawlGame.saveFile != null) {
-                for (CardSave save : CardCrawlGame.saveFile.cards) {
-                    if (save.id.equals(key) && save instanceof BranchableCardSave) {
-                        int branch = ((BranchableCardSave) save).chosenBranch;
-                        CardBranchField.ChosenBranch.set(retVal, branch);
-                        break;
-                    }
-                }
-            }
-        }
-    }*/
-    
-    static final Map<UUID, Integer> timesMap = new HashMap<>();
-    
-    @SpirePatch(clz = CardCrawlGame.class, method = "loadPlayerSave")
-    public static class PreLoadTimesMapPatch {
-        @SpirePrefixPatch
-        public static void Prefix(CardCrawlGame _inst, AbstractPlayer p) {
-            timesMap.clear();
-        }
-    }
-    
-    @SpirePatch(clz = CardLibrary.class, method = "getCopy", paramtypez = {String.class, int.class, int.class})
-    public static class LoadChosenBranchPatch {
-        @SpireInsertPatch(rloc = 9, localvars = {"retVal"})
-        public static void Insert(String key, @ByRef int[] times, int misc, AbstractCard retVal) {
-            if (retVal instanceof BranchableUpgradeCard && times[0] > 0 && CardCrawlGame.saveFile != null) {
-                int tU = times[0];
-                LMDebug.Log("Preloading " + retVal.name + "'s upgraded times: " + tU);
-                timesMap.put(retVal.uuid, tU);
-                times[0] = 0;
-            }
-        }
-    }
-    
-    public static int GetBranchUpgradedTimes(AbstractCard card) {
-        if (timesMap.containsKey(card.uuid))
-            return timesMap.get(card.uuid);
-        return 0;
+        LMDebug.Log("[" + source.name + "] has no chosen branch");
+        return null;
     }
 }

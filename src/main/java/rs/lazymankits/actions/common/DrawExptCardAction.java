@@ -123,12 +123,13 @@ public class DrawExptCardAction extends LMCustomGameAction {
     private void moveExptCardToTop(int times) {
         boolean located = false;
         int count = 0;
+        LMDebug.Log("排序需求：" + times);
         List<AbstractCard> tmp = new ArrayList<>();
         int start = cpr().drawPile.size() / 2;
         for (int i = cpr().drawPile.size() - 1; i >= cpr().drawPile.size() - start; i--) {
             if (expt.test(cpr().drawPile.group.get(i))) {
                 tmp.add(0, cpr().drawPile.group.get(i));
-                //LMDebug.Log("Moving " + cpr().drawPile.group.get(i).name + " to top");
+                LMDebug.Log("Moving " + cpr().drawPile.group.get(i).name + " to top");
                 count++;
             }
             if (count >= times) {
@@ -140,8 +141,12 @@ public class DrawExptCardAction extends LMCustomGameAction {
             for (int i = start; i >= 0; i--) {
                 if (expt.test(cpr().drawPile.group.get(i))) {
                     tmp.add(0, cpr().drawPile.group.get(i));
-                    //LMDebug.Log("Moving " + cpr().drawPile.group.get(i).name + " to top");
-                    break;
+//                    LMDebug.Log("Moving " + cpr().drawPile.group.get(i).name + " to top");
+                    count++;
+                    if (count >= times) {
+                        located = true;
+                        break;
+                    }
                 }
             }
         }
