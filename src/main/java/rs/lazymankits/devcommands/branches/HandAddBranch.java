@@ -47,10 +47,13 @@ public class HandAddBranch extends ConsoleCommand {
         DevConsole.log("Adding " + count + (count == 1 ? " copy of " : " copies of ") + cardName
                 + " upgraded at branch " + branchID);
         ((BranchableUpgradeCard) card).setChosenBranch(branchID);
-        card.upgrade();
+        try {
+            card.upgrade();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         for (int i = 0; i < count; i++) {
-            AbstractCard copy = card.makeStatEquivalentCopy();
-            LMSK.AddToBot(new MakeTempCardInHandAction(copy, 1));
+            LMSK.AddToBot(new MakeTempCardInHandAction(card, 1));
         }
     }
     

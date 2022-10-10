@@ -12,7 +12,7 @@ public class OnAttackHook {
     public static class PlayerDamage {
         @SpireInsertPatch(rloc = 61, localvars = {"damageAmount"})
         public static void Insert(AbstractPlayer _inst, DamageInfo info, int damageAmount) {
-            LMSubscriber.PublishOnAttackd(damageAmount, info, _inst);
+            LMSubscriber.PublishOnAttacked(damageAmount, info, _inst);
         }
     }
 
@@ -20,7 +20,7 @@ public class OnAttackHook {
     public static class MonsterDamage {
         @SpireInsertPatch(rloc = 59, localvars = {"damageAmount"})
         public static void Insert(AbstractMonster _inst, DamageInfo info, int damageAmount) {
-            LMSubscriber.PublishOnAttackd(damageAmount, info, _inst);
+            LMSubscriber.PublishOnAttacked(damageAmount, info, _inst);
         }
     }
 }

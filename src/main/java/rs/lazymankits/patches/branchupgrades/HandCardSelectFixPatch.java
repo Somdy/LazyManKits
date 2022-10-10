@@ -259,8 +259,6 @@ public class HandCardSelectFixPatch {
                 Branches[Next].updateHoverLogic();
                 Branches[Next].renderCardTip(sb);
             }
-            if (Prev <= -1 && Next <= -1)
-                LMDebug.Log(card.name + " should be branchable but has no any branches available");
             try {
                 Field peekButton = _inst.getClass().getDeclaredField("peekButton");
                 peekButton.setAccessible(true);

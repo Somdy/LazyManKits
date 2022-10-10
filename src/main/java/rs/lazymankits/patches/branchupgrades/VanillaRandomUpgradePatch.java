@@ -2,22 +2,31 @@ package rs.lazymankits.patches.branchupgrades;
 
 import com.evacipated.cardcrawl.modthespire.lib.*;
 import com.megacrit.cardcrawl.actions.AbstractGameAction;
-import com.megacrit.cardcrawl.actions.common.MakeTempCardAtBottomOfDeckAction;
-import com.megacrit.cardcrawl.actions.common.MakeTempCardInDiscardAction;
-import com.megacrit.cardcrawl.actions.common.MakeTempCardInDrawPileAction;
-import com.megacrit.cardcrawl.actions.common.MakeTempCardInHandAction;
+import com.megacrit.cardcrawl.actions.common.*;
+import com.megacrit.cardcrawl.actions.unique.ApotheosisAction;
+import com.megacrit.cardcrawl.actions.unique.ArmamentsAction;
 import com.megacrit.cardcrawl.actions.unique.DiscoveryAction;
+import com.megacrit.cardcrawl.actions.unique.TransmutationAction;
 import com.megacrit.cardcrawl.actions.utility.ChooseOneColorless;
 import com.megacrit.cardcrawl.actions.watcher.LessonLearnedAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.cards.CardGroup;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.events.AbstractEvent;
+import com.megacrit.cardcrawl.events.beyond.MindBloom;
+import com.megacrit.cardcrawl.events.city.BackToBasics;
+import com.megacrit.cardcrawl.events.exordium.ShiningLight;
+import com.megacrit.cardcrawl.random.Random;
 import com.megacrit.cardcrawl.relics.*;
 import com.megacrit.cardcrawl.vfx.AbstractGameEffect;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndAddToDiscardEffect;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndAddToDrawPileEffect;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndAddToHandEffect;
 import javassist.CtBehavior;
+import rs.lazymankits.interfaces.LMSubscriber;
 import rs.lazymankits.interfaces.cards.BranchableUpgradeCard;
 import rs.lazymankits.interfaces.cards.RUM;
+import rs.lazymankits.utils.LMSK;
 
 import java.util.ArrayList;
 
@@ -254,6 +263,7 @@ public class VanillaRandomUpgradePatch {
         public static void Insert(AbstractGameEffect _inst, AbstractCard card, 
                                   float x, float y, boolean a, boolean b, boolean c) {
             CheckCardRUM(card, RUM.MASTER_REALITY);
+            LMSubscriber.PublishOnMakingCard(card, LMSK.Player().drawPile);
         }
         private static class Locator extends SpireInsertLocator {
             @Override
@@ -274,6 +284,7 @@ public class VanillaRandomUpgradePatch {
         @SpireInsertPatch(locator = Locator.class)
         public static void Insert(AbstractGameEffect _inst, AbstractCard card, float x, float y) {
             CheckCardRUM(card, RUM.MASTER_REALITY);
+            LMSubscriber.PublishOnMakingCard(card, LMSK.Player().hand);
         }
         private static class Locator extends SpireInsertLocator {
             @Override
@@ -294,6 +305,7 @@ public class VanillaRandomUpgradePatch {
         @SpireInsertPatch(locator = Locator.class)
         public static void Insert(AbstractGameEffect _inst, AbstractCard card) {
             CheckCardRUM(card, RUM.MASTER_REALITY);
+            LMSubscriber.PublishOnMakingCard(card, LMSK.Player().hand);
         }
         private static class Locator extends SpireInsertLocator {
             @Override
@@ -338,8 +350,167 @@ public class VanillaRandomUpgradePatch {
         }
     }
     
+    @SpirePatch(clz = ArmamentsAction.class, method = "update")
+    public static class ArmamentsActionPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"c"})
+        public static void Insert(AbstractGameAction _inst, AbstractCard c) {
+            CheckCardRUM(c, RUM.ARMAMENTS);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch(clz = ApotheosisAction.class, method = "upgradeAllCardsInGroup")
+    public static class ApotheosisActionPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"c"})
+        public static void Insert(AbstractGameAction _inst, AbstractCard c) {
+            CheckCardRUM(c, RUM.APOTHEOSIS);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch(clz = UpgradeRandomCardAction.class, method = "update")
+    public static class UpgradeRandomCardActionPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"upgradeable"})
+        public static void Insert(AbstractGameAction _inst, CardGroup upgradeable) {
+            CheckCardRUM(upgradeable.group.get(0), RUM.WARPED_TONGS);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch(clz = MindBloom.class, method = "buttonEffect")
+    public static class MindBloomPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"c"})
+        public static void Insert(AbstractEvent _inst, int b, AbstractCard c) {
+            CheckCardRUM(c, RUM.BLOSSOM);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch(clz = TransmutationAction.class, method = "update")
+    public static class TransmutationActionPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"c"})
+        public static void Insert(AbstractGameAction _inst, AbstractCard c) {
+            CheckCardRUM(c, RUM.TRANSMUTATION);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch2(clz = AbstractDungeon.class, method = "transformCard", 
+            paramtypez = {AbstractCard.class, boolean.class, Random.class})
+    public static class AbstractDungeonTransformPatch {
+        @SpireInsertPatch(locator = Locator.class)
+        public static void Insert() {
+            CheckCardRUM(AbstractDungeon.transformedCard, RUM.TRANSFORM_UPGRADE);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch2(clz = AbstractDungeon.class, method = "getRewardCards")
+    public static class AbstractDungeonRewardPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"c"})
+        public static void Insert(AbstractCard c) {
+            CheckCardRUM(c, RUM.REWARD_UPGRADE);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch2(clz = BackToBasics.class, method = "upgradeStrikeAndDefends")
+    public static class BackToBasicsPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"c"})
+        public static void Insert(AbstractCard c) {
+            CheckCardRUM(c, RUM.BACK_TO_BASICS);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+    }
+    
+    @SpirePatch2(clz = ShiningLight.class, method = "upgradeCards")
+    public static class ShiningLightPatch {
+        @SpireInsertPatch(locator = Locator.class, localvars = {"upgradableCards"})
+        public static void Insert(ArrayList<AbstractCard> upgradableCards) {
+            CheckCardRUM(upgradableCards.get(0), RUM.SHINING_LIGHT);
+        }
+        private static class Locator extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[0];
+                return new int[] {line};
+            }
+        }
+        @SpireInsertPatch(locator = Locator2.class, localvars = {"upgradableCards"})
+        public static void Insert2(ArrayList<AbstractCard> upgradableCards) {
+            CheckCardRUM(upgradableCards.get(0), RUM.SHINING_LIGHT);
+            CheckCardRUM(upgradableCards.get(1), RUM.SHINING_LIGHT);
+        }
+        private static class Locator2 extends SpireInsertLocator {
+            @Override
+            public int[] Locate(CtBehavior ctBehavior) throws Exception {
+                Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(AbstractCard.class, "upgrade");
+                int line = LineFinder.findAllInOrder(ctBehavior, matcher)[1];
+                return new int[] {line};
+            }
+        }
+    }
+    
     private static boolean CheckCardRUM(AbstractCard card, int msg) {
-        if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).allowBranchWhenUpgradeBy(msg)) {
+        if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch()
+                && ((BranchableUpgradeCard) card).allowBranchWhenUpgradeBy(msg)) {
             int branchID = ((BranchableUpgradeCard) card).getBranchForRandomUpgrading(msg);
             ((BranchableUpgradeCard) card).setChosenBranch(branchID);
             return true;

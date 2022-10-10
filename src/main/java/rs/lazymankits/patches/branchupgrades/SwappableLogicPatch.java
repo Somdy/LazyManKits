@@ -33,7 +33,7 @@ import java.util.Map;
 
 
 public class SwappableLogicPatch {
-    public static boolean UsingSwappableLogic = false;
+    protected static boolean UsingSwappableLogic = false;
     
     @SpirePatch(clz = GridCardSelectScreen.class, method = SpirePatch.CLASS)
     public static class OptFields {
@@ -41,6 +41,13 @@ public class SwappableLogicPatch {
         //public static SpireField<Boolean> ForBranchingUpgrades = new SpireField<>(() -> false);
         public static SpireField<Hitbox> PrevBtn = new SpireField<>(() -> null);
         public static SpireField<Hitbox> NextBtn = new SpireField<>(() -> null);
+    }
+    
+    public static void OpenGridCardSelectScreen(CardGroup group, int numCards, String tipMsg, boolean forUpgrade, 
+                                                boolean forTransform, boolean canCancel, boolean forPurge) {
+        UsingSwappableLogic = true;
+        AbstractDungeon.gridSelectScreen.open(group, 1, tipMsg, true, 
+                false, true, false);
     }
     
     public static final Map<AbstractCard, AbstractCard> branchMap = new HashMap<>();
@@ -243,6 +250,7 @@ public class SwappableLogicPatch {
             Branches[Current].render(sb);
             Branches[Current].updateHoverLogic();
             Branches[Current].renderCardTip(sb);
+            Branches[Current].glowColor = Settings.BLUE_TEXT_COLOR.cpy();
             Branches[Current].beginGlowing();
             if (Prev > -1 && Branches[Prev] != null) {
                 Branches[Prev].drawScale = 0.65F;
@@ -331,6 +339,8 @@ public class SwappableLogicPatch {
         @SpirePrefixPatch
         public static void Prefix(GridCardSelectScreen _inst) {
             OptFields.SwappingBranch.set(_inst, false);
+            if (UsingSwappableLogic)
+                UsingSwappableLogic = false;
             //HandOptFields.ForBranchingUpgrades.set(_inst, false);
             CurrBranch = -1;
             Current = -1;
@@ -344,6 +354,8 @@ public class SwappableLogicPatch {
             if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.GRID
                     && OptFields.SwappingBranch.get(AbstractDungeon.gridSelectScreen)) {
                 OptFields.SwappingBranch.set(AbstractDungeon.gridSelectScreen, false);
+                if (UsingSwappableLogic)
+                    UsingSwappableLogic = false;
                 //HandOptFields.ForBranchingUpgrades.set(_inst, false);
                 CurrBranch = -1;
                 Current = -1;

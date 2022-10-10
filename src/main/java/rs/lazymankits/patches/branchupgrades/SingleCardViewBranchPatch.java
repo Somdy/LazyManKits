@@ -149,9 +149,7 @@ public class SingleCardViewBranchPatch {
                     try {
                         Matcher.MethodCallMatcher matcher = new Matcher.MethodCallMatcher(SingleCardViewPopup.class, "close");
                         line = LineFinder.findAllInOrder(m.where(), matcher)[0];
-                    } catch (Exception ignored) {
-                        
-                    }
+                    } catch (Exception ignored) {}
                     if (m.getMethodName().equals("close") && m.getLineNumber() == line) {
                         m.replace("if (" + SingleCardViewBranchPatch.class.getName() + ".ArrowsUnhovered(this)) $_ = $proceed($$);");
                     }
@@ -248,6 +246,10 @@ public class SingleCardViewBranchPatch {
         @SpireInsertPatch(locator = Locator.class, localvars = {"copy"})
         public static void Insert(SingleCardViewPopup _inst, SpriteBatch sb, @ByRef AbstractCard[] fakeCopy) {
             AbstractCard card = GetHoveredCard();
+            if (!ViewingUpgrade() || copy == null) {
+                fakeCopy[0] = card.makeCopy();
+                return;
+            }
             if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch() && ViewingUpgrade()) {
                 if (copy != null) {
                     fakeCopy[0] = copy;

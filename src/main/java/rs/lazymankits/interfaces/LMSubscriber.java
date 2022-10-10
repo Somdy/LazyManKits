@@ -2,6 +2,7 @@ package rs.lazymankits.interfaces;
 
 import com.megacrit.cardcrawl.actions.utility.UseCardAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.cards.CardGroup;
 import com.megacrit.cardcrawl.cards.DamageInfo;
 import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
@@ -24,7 +25,8 @@ public class LMSubscriber {
     private static ArrayList<TurnStartSubscriber> turnStartSubscribers;
     private static ArrayList<OnGainBlockSubscriber> onGainBlockSubscribers;
     private static ArrayList<OnAttackdSubscriber> onAttackdSubscribers;
-    private static ArrayList<PostDungeonConstructSubscriber> postDungeonConstructSubscribers;
+    private static ArrayList<OnShuffleSubscriber> onShuffleSubscribers;
+    private static ArrayList<OnMakingCardInCombatSubscriber> onMakingCardInCombatSubscribers;
     
     private static ArrayList<AtDamageGiveModifier> atDamageGiveModifiers;
     private static ArrayList<AtDamageReceiveModifier> atDamageReceiveModifiers;
@@ -44,7 +46,8 @@ public class LMSubscriber {
         turnStartSubscribers = new ArrayList<>();
         onGainBlockSubscribers = new ArrayList<>();
         onAttackdSubscribers = new ArrayList<>();
-        postDungeonConstructSubscribers = new ArrayList<>();
+        onShuffleSubscribers = new ArrayList<>();
+        onMakingCardInCombatSubscribers = new ArrayList<>();
         
         atDamageGiveModifiers = new ArrayList<>();
         atDamageReceiveModifiers = new ArrayList<>();
@@ -63,7 +66,8 @@ public class LMSubscriber {
         subIfInstance(turnStartSubscribers, sub, TurnStartSubscriber.class);
         subIfInstance(onGainBlockSubscribers, sub, OnGainBlockSubscriber.class);
         subIfInstance(onAttackdSubscribers, sub, OnAttackdSubscriber.class);
-        subIfInstance(postDungeonConstructSubscribers, sub, PostDungeonConstructSubscriber.class);
+        subIfInstance(onShuffleSubscribers, sub, OnShuffleSubscriber.class);
+        subIfInstance(onMakingCardInCombatSubscribers, sub, OnMakingCardInCombatSubscriber.class);
         
         subIfInstance(atDamageGiveModifiers, sub, AtDamageGiveModifier.class);
         subIfInstance(atDamageReceiveModifiers, sub, AtDamageReceiveModifier.class);
@@ -82,7 +86,8 @@ public class LMSubscriber {
         unsubIfInstance(turnStartSubscribers, sub, TurnStartSubscriber.class);
         unsubIfInstance(onGainBlockSubscribers, sub, OnGainBlockSubscriber.class);
         unsubIfInstance(onAttackdSubscribers, sub, OnAttackdSubscriber.class);
-        unsubIfInstance(postDungeonConstructSubscribers, sub, PostDungeonConstructSubscriber.class);
+        unsubIfInstance(onShuffleSubscribers, sub, OnShuffleSubscriber.class);
+        unsubIfInstance(onMakingCardInCombatSubscribers, sub, OnMakingCardInCombatSubscriber.class);
 
         unsubIfInstance(atDamageGiveModifiers, sub, AtDamageGiveModifier.class);
         unsubIfInstance(atDamageReceiveModifiers, sub, AtDamageReceiveModifier.class);
@@ -102,8 +107,22 @@ public class LMSubscriber {
             list.remove(clazz.cast(sub));
     }
     
+    public static void PublishOnMakingCard(@NotNull AbstractCard card, CardGroup destination) {
+        Log("publish on making card: " + card.name + (destination != null ? " to " + destination.type.name() : ""));
+        for (OnMakingCardInCombatSubscriber sub : onMakingCardInCombatSubscribers) {
+            sub.receiveOnMakingCardInCombat(card, destination);
+        }
+    }
+    
+    public static void PublishOnShuffle() {
+        Log("publish on shuffle");
+        for (OnShuffleSubscriber sub : onShuffleSubscribers) {
+            sub.receiveOnShuffle();
+        }
+    }
+    
     public static void PublishOnInitialize() {
-        Log("publish post seed generated");
+        Log("publish on initializing");
         for (OnInitializeSubscriber sub : onInitializeSubscribers) {
             sub.receiveOnInitialize();
         }
@@ -131,7 +150,7 @@ public class LMSubscriber {
     }
 
     public static void PublishPlayingCard(@NotNull AbstractCard card, AbstractCreature target, int energyOnUse) {
-        Log("publish playing " + card.name + ".");
+        Log("publish playing " + card.name);
         for (OnPlayCardSubscriber sub : onPlayCardSubscribers) {
             sub.receiveOnPlayCard(card, target, energyOnUse);
         }
@@ -164,7 +183,7 @@ public class LMSubscriber {
         }
     }
 
-    public static void PublishOnAttackd(int damage, DamageInfo info, AbstractCreature target) {
+    public static void PublishOnAttacked(int damage, DamageInfo info, AbstractCreature target) {
         for (OnAttackdSubscriber sub : onAttackdSubscribers) {
             sub.onAttackd(damage, info, target);
         }

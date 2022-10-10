@@ -11,17 +11,18 @@ import rs.lazymankits.annotations.Inencapsulated;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
     private String msg;
     private GridCardManipulator cm;
+    @Deprecated
     private boolean shouldMatchAll;
     private CardGroup[] cardGroups;
     private CardGroup tmpGroup;
-    private Predicate<AbstractCard>[] predicators;
+    private Predicate<AbstractCard> predicate;
     private List<AbstractCard> removeList;
     private boolean anyNumber;
     private boolean canCancel;
@@ -31,10 +32,10 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
     private boolean displayInOrder;
     private boolean gridOpened;
 
-    @Inencapsulated
     @SafeVarargs
+    @Inencapsulated
     public SimpleGridCardSelectBuilder(String msg, GridCardManipulator cm, boolean shouldMatchAll, boolean anyNumber, boolean canCancel,
-                                       boolean forUpgrade, boolean forTransform, boolean forPurge, Predicate<AbstractCard>... predicators) {
+                                       boolean forUpgrade, boolean forTransform, boolean forPurge, Predicate<AbstractCard>... predicate) {
         this.msg = msg;
         this.cm = cm;
         this.shouldMatchAll = shouldMatchAll;
@@ -43,7 +44,12 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
         this.forUpgrade = forUpgrade;
         this.forTransform = forTransform;
         this.forPurge = forPurge;
-        this.predicators = predicators;
+        this.predicate = predicate[0];
+        if (predicate.length > 1) {
+            for (int i = 1; i < predicate.length; i++) {
+                this.predicate = this.predicate.or(predicate[i]);
+            }
+        }
         tmpGroup = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
         removeList = new ArrayList<>();
         displayInOrder = false;
@@ -52,23 +58,23 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
         duration = startDuration = Settings.ACTION_DUR_XFAST;
     }
 
-    @Inencapsulated
     @SafeVarargs
+    @Inencapsulated
     public SimpleGridCardSelectBuilder(String msg, GridCardManipulator cm, boolean shouldMatchAll, boolean anyNumber, boolean canCancel,
-                                       Predicate<AbstractCard>... predicators) {
-        this(msg, cm, shouldMatchAll, anyNumber, canCancel, false, false, false, predicators);
+                                       Predicate<AbstractCard>... predicate) {
+        this(msg, cm, true, anyNumber, canCancel, false, false, false, predicate);
     }
 
-    @Inencapsulated
     @SafeVarargs
-    public SimpleGridCardSelectBuilder(GridCardManipulator cm, Predicate<AbstractCard>... predicators) {
-        this(null, cm, false, false, false, false, false, false, predicators);
+    @Inencapsulated
+    public SimpleGridCardSelectBuilder(GridCardManipulator cm, Predicate<AbstractCard>... predicate) {
+        this(null, cm, true, false, false, false, false, false, predicate);
     }
 
-    @Inencapsulated
     @SafeVarargs
-    public SimpleGridCardSelectBuilder(Predicate<AbstractCard>... predicators) {
-        this(null, null, false, false, false, false, false, false, predicators);
+    @Inencapsulated
+    public SimpleGridCardSelectBuilder(Predicate<AbstractCard>... predicate) {
+        this(null, null, true, false, false, false, false, false, predicate);
     }
 
     public SimpleGridCardSelectBuilder setCardGroup(CardGroup... cardGroups) {
@@ -106,6 +112,7 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
         return this;
     }
 
+    @Deprecated
     public SimpleGridCardSelectBuilder setShouldMatchAll(boolean shouldMatchAll) {
         this.shouldMatchAll = shouldMatchAll;
         return this;
@@ -137,39 +144,15 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
             tmpGroup = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
             for (int i = 0; i < cardGroups.length; i++) {
                 if (cardGroups[i].isEmpty()) continue;
-                LMDebug.Log("Adding cards in group " + i + " to candicates list");
+                LMDebug.Log("Adding cards in group " + i + " to candidates list");
                 for (AbstractCard card : cardGroups[i].group) {
                     if (displayInOrder) tmpGroup.addToBottom(card);
                     else tmpGroup.addToRandomSpot(card);
                 }
             }
-            LMDebug.Log("Judging if the cards " + (shouldMatchAll ? " match all conditions" : " match any condition."));
+            LMDebug.Log("Judging if the cards match any condition from [" + tmpGroup.size() + "] cards");
 //            List<AbstractCard> removeList = new ArrayList<>();
-            final List<Predicate<AbstractCard>> expt = new ArrayList<>(Arrays.asList(predicators));
-            tmpGroup.group.removeIf(c -> shouldMatchAll ? expt.stream().anyMatch(p -> !p.test(c))
-                    : expt.stream().noneMatch(p -> p.test(c)));
-//            for (AbstractCard card : tmpGroup.group) {
-//                int unmatches = 0;
-//                boolean anyMatched = false;
-//                for (Predicate<AbstractCard> predicator : predicators) {
-//                    if (!predicator.test(card))
-//                        unmatches++;
-//                    else if (predicator.test(card))
-//                        anyMatched = true;
-//                }
-//                if (shouldMatchAll && unmatches > 0)
-//                    removeList.add(card);
-//                    //tmpGroup.removeCard(card);
-//                else if (unmatches > predicators.length)
-//                    removeList.add(card);
-//                    //tmpGroup.removeCard(card);
-//                else if (anyMatched)
-//                    continue;
-//            }
-//            for (AbstractCard card : removeList) {
-//                if (tmpGroup.contains(card))
-//                    tmpGroup.removeCard(card);
-//            }
+            tmpGroup.group.removeIf(c -> !predicate.test(c));
             if (tmpGroup.isEmpty()) {
                 LMDebug.Log("No cards matched???");
                 isDone = true;

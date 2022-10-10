@@ -7,7 +7,7 @@
   },
   "lmkmod:SwapUpgBranchEffect": {
     "TEXT": [
-      "选择一张牌重选 #y分支"
+      "选择一张牌重选 [#FFD700]分支[] "
     ]
   }
 }

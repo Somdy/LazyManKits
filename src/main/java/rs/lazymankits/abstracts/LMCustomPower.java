@@ -57,7 +57,7 @@ public abstract class LMCustomPower extends AbstractPower implements CloneablePo
         this.owner = owner;
         this.source = source;
         this.amount = amount;
-        stackable = amount <= -1;
+        stackable = canGoNegative || amount > 0;
     }
 
     protected void setValues(AbstractCreature owner, AbstractCreature source, int amount, int extraAmt) {
@@ -65,20 +65,20 @@ public abstract class LMCustomPower extends AbstractPower implements CloneablePo
         this.source = source;
         this.amount = amount;
         this.extraAmt = extraAmt;
-        stackable = amount <= -1;
+        stackable = canGoNegative || amount > 0;
     }
 
     protected void setValues(AbstractCreature owner, int amount) {
         this.owner = owner;
         this.amount = amount;
-        stackable = amount <= -1;
+        stackable = canGoNegative || amount > 0;
     }
 
     protected void setValues(AbstractCreature owner, int amount, int extraAmt) {
         this.owner = owner;
         this.amount = amount;
         this.extraAmt = extraAmt;
-        stackable = amount <= -1;
+        stackable = canGoNegative || amount > 0;
     }
 
     protected void loadImg(String name) {
@@ -102,7 +102,7 @@ public abstract class LMCustomPower extends AbstractPower implements CloneablePo
 
     @Override
     public void stackPower(int stackAmount) {
-        if (stackable || amount > 0) {
+        if (stackable) {
             fontScale = 8F;
             amount += stackAmount;
             if (amount > getMaxAmount()) amount = getMaxAmount();
@@ -112,7 +112,7 @@ public abstract class LMCustomPower extends AbstractPower implements CloneablePo
     }
 
     public void stackExtraAmount(int stackAmount) {
-        if (!isExtraAmtFixed || extraAmt <= 0) {
+        if (!isExtraAmtFixed) {
             extraAmtFontScale = 8F;
             extraAmt += stackAmount;
             if (extraAmt > getMaxExtraAmount()) extraAmt = getMaxExtraAmount();

@@ -1,6 +1,8 @@
 package rs.lazymankits.actions.tools;
 
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.characters.AbstractPlayer;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 
 public abstract class HandCardManipulator {
     /**
@@ -10,4 +12,9 @@ public abstract class HandCardManipulator {
      * @return true if the card should return to hand, false if the card should not return to hand
      */
     public abstract boolean manipulate(AbstractCard card, int index);
+    
+    public void moveToDrawPile(AbstractCard card, boolean onTop) {
+        AbstractPlayer p = AbstractDungeon.player;
+        p.drawPile.moveToDeck(card, !onTop);
+    }
 }

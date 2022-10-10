@@ -10,12 +10,12 @@ import java.util.function.Predicate;
 
 public class DrawUntilMeetsWhatBuilder extends LMCustomGameAction {
     private AbstractGameAction action;
-    private Predicate<AbstractCard> predicator;
+    private Predicate<AbstractCard> predicate;
 
-    public DrawUntilMeetsWhatBuilder(AbstractGameAction action, Predicate<AbstractCard> predicator) {
+    public DrawUntilMeetsWhatBuilder(AbstractGameAction action, Predicate<AbstractCard> predicate) {
         setValues(cpr(), cpr(), 0);
         this.action = action;
-        this.predicator = predicator;
+        this.predicate = predicate;
         duration = startDuration = Settings.ACTION_DUR_FAST;
     }
 
@@ -23,8 +23,8 @@ public class DrawUntilMeetsWhatBuilder extends LMCustomGameAction {
     public void update() {
         if (duration == startDuration) {
             addToBot(new DrawCardAction(1, action));
-            if (!cpr().drawPile.isEmpty() && !predicator.test(cpr().drawPile.getTopCard()))
-                addToBot(new DrawUntilMeetsWhatBuilder(action, predicator));
+            if (!cpr().drawPile.isEmpty() && !predicate.test(cpr().drawPile.getTopCard()))
+                addToBot(new DrawUntilMeetsWhatBuilder(action, predicate));
         }
         tickDuration();
     }

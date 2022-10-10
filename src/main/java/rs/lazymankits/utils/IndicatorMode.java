@@ -199,7 +199,6 @@ public class IndicatorMode implements LMGameGeneralUtils {
     public static class IndicatorUpdateAndRenderPatch {
         @SpirePatch( clz = AbstractDungeon.class, method = "render")
         public static class InsertRender {
-
             @SpireInsertPatch(locator = RenderLocator.class)
             public static void Insert(Object _obj, SpriteBatch sb) {
                 if (!invoker.isEmpty() && drawLine)

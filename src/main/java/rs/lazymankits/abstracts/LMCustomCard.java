@@ -8,6 +8,7 @@ import com.megacrit.cardcrawl.cards.DamageInfo;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
+import com.megacrit.cardcrawl.helpers.PowerTip;
 import rs.lazymankits.actions.CustomDmgInfo;
 import rs.lazymankits.actions.DamageSource;
 import rs.lazymankits.utils.LMGameGeneralUtils;
@@ -22,13 +23,16 @@ public abstract class LMCustomCard extends CustomCard implements LMGameGeneralUt
     public LMCustomCard(String id, String name, String img, int cost, String rawDescription, CardType type, CardColor color, CardRarity rarity, CardTarget target) {
         super(id, name, img, cost, rawDescription, type, color, rarity, target);
     }
+    
+    protected void addTip(TooltipInfo tip) {
+        if (tips == null) tips = new ArrayList<>();
+        if (tips.stream().anyMatch(t -> t.title.equals(tip.title) && t.description.equals(tip.description)))
+            return;
+        tips.add(tip);
+    }
 
     protected void addTip(String head, String body) {
-        if (tips == null)
-            tips = new ArrayList<>();
-        if (tips.stream().anyMatch(t -> t.title.equals(head) && t.description.equals(body)))
-            return;
-        tips.add(new TooltipInfo(head, body));
+        addTip(new TooltipInfo(head, body));
     }
 
     protected boolean replaceTip(String head, String body) {

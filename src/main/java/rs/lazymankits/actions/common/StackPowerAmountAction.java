@@ -27,7 +27,7 @@ public class StackPowerAmountAction extends LMCustomGameAction {
     @Override
     public void update() {
         isDone = true;
-        if (target.isDeadOrEscaped() || power == null || amount <= 0)
+        if (target.isDeadOrEscaped() || power == null || amount == 0)
             return;
         Optional<AbstractPower> targetPower = target.powers.stream().filter(p -> p == power).findFirst();
         targetPower.ifPresent(p -> {

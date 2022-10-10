@@ -17,7 +17,6 @@ public class OnInitializeHook {
     }
 
     private static class Locator extends SpireInsertLocator {
-
         @Override
         public int[] Locate(CtBehavior ctMethodToPatch) throws Exception {
             Matcher.NewExprMatcher matcher = new Matcher.NewExprMatcher(LocalizedStrings.class);

@@ -18,18 +18,19 @@ public class SimpleHandCardSelectBuilder extends LMCustomGameAction {
     private String msg;
     private HandCardManipulator cm;
     private HandCardManipulator cmForRemoveList;
+    @Deprecated
     private boolean shouldMatchAll;
     private boolean anyNumber;
     private boolean canPickZero;
     private boolean forUpgrade;
-    private Predicate<AbstractCard>[] predicators;
+    private Predicate<AbstractCard> predicate;
     private List<AbstractCard> removeList;
     private boolean cardsReturned;
     private AbstractGameAction followUpAction;
 
     @SafeVarargs
     public SimpleHandCardSelectBuilder(String msg, HandCardManipulator cm, boolean shouldMatchAll, boolean anyNumber,
-                                       boolean canPickZero, @NotNull Predicate<AbstractCard>... predicators) {
+                                       boolean canPickZero, @NotNull Predicate<AbstractCard>... predicate) {
         this.msg = msg;
         this.cm = cm;
         this.cmForRemoveList = null;
@@ -37,7 +38,12 @@ public class SimpleHandCardSelectBuilder extends LMCustomGameAction {
         this.anyNumber = anyNumber;
         this.canPickZero = canPickZero;
         this.forUpgrade = false;
-        this.predicators = predicators;
+        this.predicate = predicate[0];
+        if (predicate.length > 1) {
+            for (int i = 1; i < predicate.length; i++) {
+                this.predicate = this.predicate.or(predicate[i]);
+            }
+        }
         removeList = new ArrayList<>();
         cardsReturned = false;
         followUpAction = null;
@@ -95,6 +101,7 @@ public class SimpleHandCardSelectBuilder extends LMCustomGameAction {
         return this;
     }
 
+    @Deprecated
     public SimpleHandCardSelectBuilder setShouldMatchAll(boolean shouldMatchAll) {
         this.shouldMatchAll = shouldMatchAll;
         return this;
@@ -115,20 +122,10 @@ public class SimpleHandCardSelectBuilder extends LMCustomGameAction {
             }
             removeList.addAll(p.hand.group);
             List<AbstractCard> notToRemove = new ArrayList<>();
-            for (AbstractCard card : removeList) {
-                int unmatches = 0;
-                boolean anyMatched = false;
-                for (Predicate<AbstractCard> predicator : predicators) {
-                    if (!predicator.test(card))
-                        unmatches++;
-                    else if (predicator.test(card))
-                        anyMatched = true;
-                }
-                if (shouldMatchAll && unmatches <= 0)
-                    notToRemove.add(card);
-                else if (anyMatched)
-                    notToRemove.add(card);
-            }
+            removeList.forEach(c -> {
+                if (predicate.test(c))
+                    notToRemove.add(c);
+            });
             if (notToRemove.isEmpty()) {
                 LMDebug.Log("No cards matched???");
                 isDone = true;

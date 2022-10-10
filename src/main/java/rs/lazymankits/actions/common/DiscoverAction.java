@@ -13,6 +13,7 @@ import rs.lazymankits.abstracts.LMCustomGameAction;
 import rs.lazymankits.utils.LMSK;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -25,7 +26,7 @@ public class DiscoverAction extends LMCustomGameAction {
     private boolean autoGenerate;
     private boolean keepAll;
     
-    public DiscoverAction(List<AbstractCard> cards, int amount, Consumer<AbstractCard> dowhat) {
+    public DiscoverAction(List<? extends AbstractCard> cards, int amount, Consumer<AbstractCard> dowhat) {
         this.cards = new ArrayList<>(cards);
         this.amount = amount;
         this.dowhat = dowhat;
@@ -36,11 +37,11 @@ public class DiscoverAction extends LMCustomGameAction {
         startDuration = duration = Settings.ACTION_DUR_XFAST;
     }
     
-    public DiscoverAction(List<AbstractCard> cards, Consumer<AbstractCard> dowhat) {
+    public DiscoverAction(List<? extends AbstractCard> cards, Consumer<AbstractCard> dowhat) {
         this(cards, 3, dowhat);
     }
     
-    public DiscoverAction(List<AbstractCard> cards) {
+    public DiscoverAction(List<? extends AbstractCard> cards) {
         this(cards, 3, null);
     }
     
@@ -134,10 +135,10 @@ public class DiscoverAction extends LMCustomGameAction {
     }
     
     @NotNull
-    public static List<AbstractCard> Generate(int amount, List<AbstractCard> range, Predicate<AbstractCard> predicate) {
+    public static List<AbstractCard> Generate(int amount, List<? extends AbstractCard> range, Predicate<AbstractCard> predicate) {
         List<AbstractCard> tmp = new ArrayList<>();
         while (tmp.size() < amount) {
-            Optional<AbstractCard> opt = LMSK.GetRandom(range, LMSK.CardRandomRng());
+            Optional<? extends AbstractCard> opt = LMSK.GetRandom(range, LMSK.CardRandomRng());
             opt.ifPresent(card -> {
                 if (tmp.stream().noneMatch(c -> c.cardID.equals(card.cardID)))
                     tmp.add(card.makeStatEquivalentCopy());

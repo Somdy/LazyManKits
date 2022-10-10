@@ -22,6 +22,7 @@ public class DrawExptCardAction extends LMCustomGameAction {
     private boolean shuffleCheck;
     private boolean sorted;
     private boolean discardIncluded;
+    private boolean clearHistory;
     private Predicate<AbstractCard> expt;
     private TaoKe taokeAction;
     
@@ -33,8 +34,8 @@ public class DrawExptCardAction extends LMCustomGameAction {
         this.discardIncluded = true;
         this.shuffleCheck = false;
         this.sorted = false;
+        this.clearHistory = true;
         actionType = ActionType.SPECIAL;
-        duration = startDuration = Settings.FAST_MODE ? Settings.ACTION_DUR_XFAST : Settings.ACTION_DUR_FAST;
     }
     
     public DrawExptCardAction(AbstractCreature source, int amount, Predicate<AbstractCard> expt) {
@@ -53,7 +54,12 @@ public class DrawExptCardAction extends LMCustomGameAction {
         this.discardIncluded = false;
         return this;
     }
-
+    
+    public DrawExptCardAction clearHistory(boolean clearHistory) {
+        this.clearHistory = clearHistory;
+        return this;
+    }
+    
     @Override
     public void update() {
         if (cpr().hasPower(NoDrawPower.POWER_ID)) {
@@ -63,7 +69,7 @@ public class DrawExptCardAction extends LMCustomGameAction {
             return;
         }
         if (amount < 0 || expt == null) {
-            isDone = true;
+            
             executeFollowUpAction();
             return;
         }
@@ -82,23 +88,32 @@ public class DrawExptCardAction extends LMCustomGameAction {
                 return;
             }
             if (!shuffleCheck) {
-                int delta;
                 if (amount + cpr().hand.size() > BaseMod.MAX_HAND_SIZE) {
-                    delta = BaseMod.MAX_HAND_SIZE - (amount + cpr().hand.size());
+                    int delta = BaseMod.MAX_HAND_SIZE - (amount + cpr().hand.size());
                     amount += delta;
+                    LMDebug.Log("Manipulated draw amount: " + amount);
                     cpr().createHandIsFullDialog();
                 }
                 if (amount > drawsize) {
-                    if (!discardIncluded) {
-                        amount = drawsize;
-                    }
-                    else {
-                        delta = amount - drawsize;
-                        addToTop(new DrawExptCardAction(source, delta, expt, taokeAction));
-                        addToTop(new EmptyDeckShuffleAction());
-                    }
-                    if (drawsize > 0) {
-                        addToTop(new DrawExptCardAction(source, drawsize, expt, taokeAction));
+//                    {
+//                        if (!discardIncluded) {
+//                            amount = drawsize;
+//                        } else {
+//                            delta = amount - drawsize;
+//                            addToTop(new DrawExptCardAction(source, delta, expt, taokeAction));
+//                            addToTop(new EmptyDeckShuffleAction());
+//                        }
+//                        if (drawsize > 0) {
+//                            addToTop(new DrawExptCardAction(source, drawsize, expt, taokeAction));
+//                        }
+//                    }
+                    {
+                        if (!discardIncluded) {
+                            amount = drawsize;
+                        } else {
+                            addToTop(new DrawExptCardAction(source, amount, expt, taokeAction));
+                            addToTop(new EmptyDeckShuffleAction());
+                        }
                     }
                     amount = 0;
                     isDone = true;
@@ -106,48 +121,34 @@ public class DrawExptCardAction extends LMCustomGameAction {
                 }
                 shuffleCheck = true;
             }
-            duration -= Gdx.graphics.getDeltaTime();
-            if (amount > 0 && duration < 0F) {
+            if (amount > 0) {
                 if (!sorted) {
                     moveExptCardToTop(amount);
                     sorted = true;
                 }
                 if (!cpr().drawPile.isEmpty()) {
-                    addToTop(new DrawCardAction(amount, taokeAction));
+                    addToTop(new DrawCardAction(amount, taokeAction, clearHistory));
                 }
-                isDone = true;
             }
+            isDone = true;
         }
     }
     
     private void moveExptCardToTop(int times) {
-        boolean located = false;
         int count = 0;
-        LMDebug.Log("排序需求：" + times);
+        LMDebug.Log("Sort requirements：" + times);
         List<AbstractCard> tmp = new ArrayList<>();
         int start = cpr().drawPile.size() / 2;
-        for (int i = cpr().drawPile.size() - 1; i >= cpr().drawPile.size() - start; i--) {
+        for (int i = cpr().drawPile.size() - 1; i >= 0; i--) {
             if (expt.test(cpr().drawPile.group.get(i))) {
-                tmp.add(0, cpr().drawPile.group.get(i));
-                LMDebug.Log("Moving " + cpr().drawPile.group.get(i).name + " to top");
+                AbstractCard targetCard = cpr().drawPile.group.get(i);
+                tmp.add(0, targetCard);
                 count++;
+                LMDebug.Log("Moving " + targetCard.name + " to top, left reqs: " + (times - count));
             }
             if (count >= times) {
-                located = true;
+                LMDebug.Log("All cards located");
                 break;
-            }
-        }
-        if (!located) {
-            for (int i = start; i >= 0; i--) {
-                if (expt.test(cpr().drawPile.group.get(i))) {
-                    tmp.add(0, cpr().drawPile.group.get(i));
-//                    LMDebug.Log("Moving " + cpr().drawPile.group.get(i).name + " to top");
-                    count++;
-                    if (count >= times) {
-                        located = true;
-                        break;
-                    }
-                }
             }
         }
         cpr().drawPile.group.removeAll(tmp);

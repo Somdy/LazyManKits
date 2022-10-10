@@ -53,7 +53,6 @@ public class SwapUpgBranchEffect extends LMCustomGameEffect implements LMGameGen
         duration = 1.5F;
         screenColor.a = 0F;
         AbstractDungeon.overlayMenu.proceedButton.hide();
-        SwappableLogicPatch.UsingSwappableLogic = true;
     }
     
     public SwapUpgBranchEffect setMsg(String msg) {
@@ -64,7 +63,6 @@ public class SwapUpgBranchEffect extends LMCustomGameEffect implements LMGameGen
     @Override
     public void update() {
         if (cardGroup.isEmpty() || duration < 0F) {
-            SwappableLogicPatch.UsingSwappableLogic = false;
             isDone = true;
             if (CampfireUI.hidden) {
                 AbstractRoom.waitTimer = 0F;
@@ -79,7 +77,7 @@ public class SwapUpgBranchEffect extends LMCustomGameEffect implements LMGameGen
         }
         if (!screenOpened && duration < 1F && !cardGroup.isEmpty()) {
             screenOpened = true;
-            AbstractDungeon.gridSelectScreen.open(cardGroup, 1, msg, 
+            SwappableLogicPatch.OpenGridCardSelectScreen(cardGroup, 1, msg, 
                     true, false, true, false);
         }
         if (!AbstractDungeon.isScreenUp && !AbstractDungeon.gridSelectScreen.selectedCards.isEmpty()

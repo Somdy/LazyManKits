@@ -13,10 +13,12 @@ import rs.lazymankits.utils.LMSK;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Inencapsulated
-public interface BranchableUpgradeCard extends CustomSavable<Integer> {
+public interface BranchableUpgradeCard extends CustomSavable<Map<String, String>> {
     List<UpgradeBranch> possibleBranches();
     
     default List<UpgradeBranch> getPossibleBranches() {
@@ -41,17 +43,46 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
     
     default void setChosenBranch(int branch) {
         if (this instanceof AbstractCard) {
-            LMDebug.Log("Setting " + ((AbstractCard) this).name + "'s final branch: " + branch);
+            LMDebug.Log("Setting [" + ((AbstractCard) this).name + "]'s chosen branch: " + branch);
             BranchableUpgradePatch.CardBranchField.ChosenBranch.set(this, branch);
+            BranchableUpgradePatch.CardBranchField.LocalChosenBranch.set(this, branch);
+        }
+    }
+    
+    default void setLocalBranch(int branch) {
+        if (this instanceof AbstractCard) {
+            if (BranchableUpgradePatch.CardBranchField.LocalChosenBranch.get(this) == branch) return;
+//            LMDebug.Log("Setting " + ((AbstractCard) this).name + "'s local branch: " + branch);
+            BranchableUpgradePatch.CardBranchField.LocalChosenBranch.set(this, branch);
         }
     }
     
     default int chosenBranch() {
         if (this instanceof AbstractCard) {
-            int branch = BranchableUpgradePatch.CardBranchField.ChosenBranch.get(this);
             //LMDebug.Log("Getting " + ((AbstractCard) this).name + "'s final branch: " + branch);
+            int branch = BranchableUpgradePatch.CardBranchField.ChosenBranch.get(this);
             return branch > -1 ? branch : defaultBranch();
         } else 
+            throw new NotImplementedException("Not implemented branchable");
+    }
+    
+    default int localBranch() {
+        if (this instanceof AbstractCard) {
+            int branch = BranchableUpgradePatch.CardBranchField.LocalChosenBranch.get(this);
+            return branch > -1 ? branch : defaultBranch();
+        } else
+            throw new NotImplementedException("Not implemented branchable");
+    }
+    
+    default int finalBranch() {
+        if (this instanceof AbstractCard) {
+            int branch = chosenBranch();
+            int localBranch = localBranch();
+            if (branch != localBranch && usingLocalBranch()) {
+                branch = localBranch;
+            }
+            return branch;
+        } else
             throw new NotImplementedException("Not implemented branchable");
     }
     
@@ -63,8 +94,9 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
     }
     
     default void upgradeCalledOnSL() {
-        if (this instanceof AbstractCard)
+        if (this instanceof AbstractCard) {
             ((AbstractCard) this).upgrade();
+        }
     }
     
     default boolean allowBranchWhenUpgradeBy(int msg) {
@@ -87,22 +119,65 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
         }
         return MathUtils.random(getPossibleBranches().size() - 1);
     }
+    
+    default boolean usingLocalBranch() {
+        int branch = chosenBranch();
+        int localBranch = localBranch();
+        return branch != localBranch;
+    }
+    
+    default void upgradeAndCorrectBranch() {
+        if (this instanceof AbstractCard) {
+            int maxBranch = possibleBranches().size();
+            int maxBranchAvailable = getPossibleBranches().size();
+//            LMDebug.Log("[" + ((AbstractCard) this).name + "] max branch: " + maxBranch
+//                    + ", max available: " + maxBranchAvailable + ", chosen: " + chosenBranch());
+            if (maxBranch > maxBranchAvailable && chosenBranch() >= 0) {
+//                LMDebug.Log("[" + ((AbstractCard) this).name + "] using alternative branches");
+                if (chosenBranch() >= maxBranchAvailable - 1) {
+                    if (localBranch() >= 0) {
+                        possibleBranches().get(localBranch()).upgrade();
+                    }
+                    else {
+                        getPossibleBranches().get(maxBranchAvailable).upgrade();
+                    }
+                }
+            }
+            if (maxBranch == maxBranchAvailable) {
+                int chosenBranch = chosenBranch() >= 0 ? chosenBranch() : defaultBranch();
+                getPossibleBranches().get(chosenBranch).upgrade();
+            }
+            if (usingLocalBranch()) {
+                if (localBranch() != chosenBranch() && localBranch() >= 0)
+                    setChosenBranch(localBranch());
+            }
+        } else
+            throw new NotImplementedException("Not implemented branchable");
+    }
 
     @Override
-    default Integer onSave() {
+    default Map<String, String> onSave() {
         if (this instanceof AbstractCard) {
             int branch = chosenBranch();
-            LMDebug.Log("Saving " + ((AbstractCard) this).name + "'s final branch: " + branch);
-            return chosenBranch();
+            int localBranch = localBranch();
+            LMDebug.Log("Saving [" + ((AbstractCard) this).name + "]'s chosen branch: " + branch + " and local branch: " + localBranch);
+            Map<String, String> map = new HashMap<>();
+            map.put("chosenBranch", String.valueOf(branch));
+            map.put("localBranch", String.valueOf(localBranch));
+            return map;
         } else 
             throw new NotImplementedException("Not implemented branchable");
     }
 
     @Override
-    default void onLoad(Integer branch) {
-        if (branch == null) return;
+    default void onLoad(Map<String, String> map) {
+        if (map == null) return;
         if (this instanceof AbstractCard) {
+            int branch = Integer.parseInt(map.get("chosenBranch"));
+            int localBranch = Integer.parseInt(map.get("localBranch"));
             BranchableUpgradePatch.CardBranchField.ChosenBranch.set(this, branch);
+            BranchableUpgradePatch.CardBranchField.LocalChosenBranch.set(this, localBranch);
+            LMDebug.Log("Loading [" + ((AbstractCard) this).name + "]'s chosen branch: " + branch + " and local branch: " + localBranch);
             int times = BranchableUpgradePatch.GetBranchUpgradedTimes((AbstractCard) this);
             for (int i = 0; i < times; i++) {
                 upgradeCalledOnSL();
@@ -113,6 +188,6 @@ public interface BranchableUpgradeCard extends CustomSavable<Integer> {
 
     @Override
     default Type savedType() {
-        return new TypeToken<Integer>(){}.getType();
+        return new TypeToken<Map<String, String>>(){}.getType();
     }
 }

@@ -37,6 +37,7 @@ public class BranchableUpgradePatch {
     @SpirePatch(clz = AbstractCard.class, method = SpirePatch.CLASS)
     public static class CardBranchField {
         public static SpireField<Integer> ChosenBranch = new SpireField<>(() -> -1);
+        public static SpireField<Integer> LocalChosenBranch = new SpireField<>(() -> -1);
     }
     
     @SpirePatch(clz = CardSave.class, method = SpirePatch.CLASS)
@@ -235,6 +236,7 @@ public class BranchableUpgradePatch {
     
     public static boolean RenderingBranches(GridCardSelectScreen _inst, SpriteBatch sb) {
         AbstractCard card = GetHoveredCard();
+        if (!OptFields.SelectingBranch.get(_inst) || SwappableLogicPatch.UsingSwappableLogic) return false;
         if (_inst.forUpgrade && card instanceof BranchableUpgradeCard
                 && ((BranchableUpgradeCard) card).canBranch() && !card.upgraded) {
             card.current_x = Settings.WIDTH * 0.35F;
@@ -282,8 +284,6 @@ public class BranchableUpgradePatch {
                 Branches[Next].updateHoverLogic();
                 Branches[Next].renderCardTip(sb);
             }
-            if (Prev <= -1 && Next <= -1)
-                LMDebug.Log(card.name + " should be branchable but has no any branches available");
             if (!PeekButton.isPeeking && (_inst.forUpgrade || _inst.forTransform || _inst.forPurge
                     || _inst.isJustForConfirming || _inst.anyNumber)) {
                 _inst.confirmButton.render(sb);
@@ -404,8 +404,12 @@ public class BranchableUpgradePatch {
         public static void Insert(AbstractCard _inst, AbstractCard card) {
             if (_inst instanceof BranchableUpgradeCard) {
                 int branch = ((BranchableUpgradeCard) _inst).chosenBranch();
+                int localBranch = ((BranchableUpgradeCard) _inst).localBranch();
                 if (branch > -1) {
                     CardBranchField.ChosenBranch.set(card, branch);
+                }
+                if (localBranch > -1) {
+                    CardBranchField.LocalChosenBranch.set(card, localBranch);
                 }
             }
         }
