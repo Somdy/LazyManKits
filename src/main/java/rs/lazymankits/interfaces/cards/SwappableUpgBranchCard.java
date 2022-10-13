@@ -32,7 +32,7 @@ public interface SwappableUpgBranchCard {
         if (this instanceof AbstractCard) {
             if (!((AbstractCard) this).upgraded) return false;
             List<UpgradeBranch> branches = getAllBranches();
-            return branches.size() >= 2;
+            return branches != null && branches.size() >= 2;
         } else 
             throw new NotImplementedException("NOT A CARD");
     }
