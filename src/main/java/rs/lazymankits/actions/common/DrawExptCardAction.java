@@ -69,12 +69,13 @@ public class DrawExptCardAction extends LMCustomGameAction {
             return;
         }
         if (amount < 0 || expt == null) {
-            
+            isDone = true;
             executeFollowUpAction();
             return;
         }
         int drawsize = countSpecificCards(cpr().drawPile, expt);
         int discardsize = discardIncluded ? countSpecificCards(cpr().discardPile, expt) : 0;
+        int totalCards = drawsize + discardsize;
         if (!SoulGroup.isActive()) {
             if (drawsize + discardsize == 0) {
                 isDone = true;
@@ -94,27 +95,17 @@ public class DrawExptCardAction extends LMCustomGameAction {
                     LMDebug.Log("Manipulated draw amount: " + amount);
                     cpr().createHandIsFullDialog();
                 }
-                if (amount > drawsize) {
-//                    {
-//                        if (!discardIncluded) {
-//                            amount = drawsize;
-//                        } else {
-//                            delta = amount - drawsize;
-//                            addToTop(new DrawExptCardAction(source, delta, expt, taokeAction));
-//                            addToTop(new EmptyDeckShuffleAction());
-//                        }
-//                        if (drawsize > 0) {
-//                            addToTop(new DrawExptCardAction(source, drawsize, expt, taokeAction));
-//                        }
-//                    }
-                    {
-                        if (!discardIncluded) {
-                            amount = drawsize;
-                        } else {
-                            addToTop(new DrawExptCardAction(source, amount, expt, taokeAction));
-                            addToTop(new EmptyDeckShuffleAction());
-                        }
+                if (amount > totalCards) {
+                    int oldAmount = amount;
+                    if (!discardIncluded) {
+                        amount = totalCards - discardsize;
+                    } else {
+                        amount = totalCards;
+                        addToTop(new DrawExptCardAction(source, amount, expt, taokeAction));
+                        addToTop(new EmptyDeckShuffleAction());
                     }
+                    LMDebug.Log("Player wants [" + oldAmount + "] draws but has only [" + amount + "] draws");
+                    LMDebug.Log("Discard pile included [" + discardIncluded + "]");
                     amount = 0;
                     isDone = true;
                     return;

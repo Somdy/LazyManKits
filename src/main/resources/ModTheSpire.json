@@ -3,7 +3,7 @@
     "name": "Lazy Man Kits [BETA 1.4]",
     "author_list": ["Somdy"],
     "description": "没什么用的懒人工具包.\n\n说明文档(未完成)：https://github.com/Somdy/LazyManKits/wiki",
-    "version": "20221013.3.7",
+    "version": "20221017.3.8",
     "sts_version": "12-22-2020",
     "mts_version": "3.25.0",
     "dependencies": ["basemod"]
