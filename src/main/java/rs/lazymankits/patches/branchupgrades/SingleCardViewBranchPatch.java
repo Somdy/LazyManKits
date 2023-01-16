@@ -223,37 +223,34 @@ public class SingleCardViewBranchPatch {
         }
     }
     
-    @SpirePatch(clz = SingleCardViewPopup.class, method = "render")
-    public static class StopSTopSTOpSTOPNewNEwNEWaACardCArdCARdCARDEachEAchEAChEACHFrameFRameFRAmeFRAMeFRAME {
-        @SpireInstrumentPatch
-        public static ExprEditor Instrument() {
-            return new ExprEditor() {
-                @Override
-                public void edit(MethodCall m) throws CannotCompileException {
-                    if (m.getClassName().equals(AbstractCard.class.getName())
-                            && m.getMethodName().equals("makeStatEquivalentCopy")) {
-                        String path = SingleCardViewBranchPatch.class.getName();
-                        m.replace("if (" + path + ".copy == null && " + path + ".IsSelectingBranch(this))" +
-                                " {$_ = $proceed($$);}");
-                    }
-                }
-            };
-        }
-    }
+//    @SpirePatch(clz = SingleCardViewPopup.class, method = "render")
+//    public static class StopSTopSTOpSTOPNewNEwNEWaACardCArdCARdCARDEachEAchEAChEACHFrameFRameFRAmeFRAMeFRAME {
+//        @SpireInstrumentPatch
+//        public static ExprEditor Instrument() {
+//            return new ExprEditor() {
+//                @Override
+//                public void edit(MethodCall m) throws CannotCompileException {
+//                    if (m.getClassName().equals(AbstractCard.class.getName())
+//                            && m.getMethodName().equals("makeStatEquivalentCopy")) {
+//                        String path = SingleCardViewBranchPatch.class.getName();
+//                        m.replace("if (" + path + ".copy == null && " + path + ".IsSelectingBranch(this))" +
+//                                " {$_ = $proceed($$);}");
+//                    }
+//                }
+//            };
+//        }
+//    }
     
     @SpirePatch(clz = SingleCardViewPopup.class, method = "render")
     public static class RenderingBranches {
         @SpireInsertPatch(locator = Locator.class, localvars = {"copy"})
         public static void Insert(SingleCardViewPopup _inst, SpriteBatch sb, @ByRef AbstractCard[] fakeCopy) {
             AbstractCard card = GetHoveredCard();
-            if (!ViewingUpgrade() || copy == null) {
-                fakeCopy[0] = card.makeCopy();
+            if (!ViewingUpgrade()) {
+                fakeCopy[0] = card.makeStatEquivalentCopy();
                 return;
             }
             if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch() && ViewingUpgrade()) {
-                if (copy != null) {
-                    fakeCopy[0] = copy;
-                }
                 if (Current < 0) {
                     CheckIfCardBranchable(_inst);
                     return;
@@ -299,6 +296,7 @@ public class SingleCardViewBranchPatch {
     @SpirePatch(clz = SingleCardViewPopup.class, method = "renderArrows")
     public static class RenderSelectArrows {
         public static void Postfix(SingleCardViewPopup _inst, SpriteBatch sb) {
+            AbstractCard card = GetHoveredCard();
             if (ViewingUpgrade() && OptFields.SelectingBranch.get(_inst)) {
                 RenderPrevAndNextArrows(_inst, sb);
             }

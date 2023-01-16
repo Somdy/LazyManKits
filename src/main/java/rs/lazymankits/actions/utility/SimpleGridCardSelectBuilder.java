@@ -23,7 +23,6 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
     private CardGroup[] cardGroups;
     private CardGroup tmpGroup;
     private Predicate<AbstractCard> predicate;
-    private List<AbstractCard> removeList;
     private boolean anyNumber;
     private boolean canCancel;
     private boolean forUpgrade;
@@ -33,7 +32,7 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
     private boolean gridOpened;
 
     @SafeVarargs
-    @Inencapsulated
+    @Deprecated
     public SimpleGridCardSelectBuilder(String msg, GridCardManipulator cm, boolean shouldMatchAll, boolean anyNumber, boolean canCancel,
                                        boolean forUpgrade, boolean forTransform, boolean forPurge, Predicate<AbstractCard>... predicate) {
         this.msg = msg;
@@ -51,7 +50,28 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
             }
         }
         tmpGroup = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
-        removeList = new ArrayList<>();
+        displayInOrder = false;
+        gridOpened = false;
+        actionType = ActionType.CARD_MANIPULATION;
+        duration = startDuration = Settings.ACTION_DUR_XFAST;
+    }
+    
+    public SimpleGridCardSelectBuilder(String msg, GridCardManipulator cm, boolean anyNumber, boolean canCancel,
+                                       boolean forUpgrade, boolean forTransform, boolean forPurge, Predicate<AbstractCard>... predicate) {
+        this.msg = msg;
+        this.cm = cm;
+        this.anyNumber = anyNumber;
+        this.canCancel = canCancel;
+        this.forUpgrade = forUpgrade;
+        this.forTransform = forTransform;
+        this.forPurge = forPurge;
+        this.predicate = predicate[0];
+        if (predicate.length > 1) {
+            for (int i = 1; i < predicate.length; i++) {
+                this.predicate = this.predicate.or(predicate[i]);
+            }
+        }
+        tmpGroup = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
         displayInOrder = false;
         gridOpened = false;
         actionType = ActionType.CARD_MANIPULATION;
@@ -62,19 +82,19 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
     @Inencapsulated
     public SimpleGridCardSelectBuilder(String msg, GridCardManipulator cm, boolean shouldMatchAll, boolean anyNumber, boolean canCancel,
                                        Predicate<AbstractCard>... predicate) {
-        this(msg, cm, true, anyNumber, canCancel, false, false, false, predicate);
+        this(msg, cm, anyNumber, canCancel, false, false, false, predicate);
     }
 
     @SafeVarargs
     @Inencapsulated
     public SimpleGridCardSelectBuilder(GridCardManipulator cm, Predicate<AbstractCard>... predicate) {
-        this(null, cm, true, false, false, false, false, false, predicate);
+        this(null, cm, false, false, false, false, false, predicate);
     }
 
     @SafeVarargs
     @Inencapsulated
     public SimpleGridCardSelectBuilder(Predicate<AbstractCard>... predicate) {
-        this(null, null, true, false, false, false, false, false, predicate);
+        this(null, null, false, false, false, false, false, predicate);
     }
 
     public SimpleGridCardSelectBuilder setCardGroup(CardGroup... cardGroups) {

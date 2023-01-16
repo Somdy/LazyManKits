@@ -25,8 +25,8 @@ import java.util.List;
 
 import static rs.lazymankits.patches.branchupgrades.BranchableUpgradePatch.MAX_BRANCHES;
 
+@SuppressWarnings("unused")
 public class HandCardSelectFixPatch {
-    
     @SpirePatch(clz = HandCardSelectScreen.class, method = SpirePatch.CLASS)
     public static class HandOptFields {
         public static SpireField<Boolean> SelectingBranch = new SpireField<>(() -> false);
@@ -92,6 +92,8 @@ public class HandCardSelectFixPatch {
             for (int i = 0; i < length; i++) {
                 AbstractCard previewCard = card.makeStatEquivalentCopy();
                 ((BranchableUpgradeCard) previewCard).getPossibleBranches().get(i).upgrade();
+                if (!((BranchableUpgradeCard) previewCard).usingLocalBranch()) 
+                    ((BranchableUpgradeCard) previewCard).setChosenBranch(i);
                 previewCard.displayUpgrades();
                 Branches[i] = previewCard;
             }
@@ -335,7 +337,12 @@ public class HandCardSelectFixPatch {
             AbstractCard card = _inst.selectedCards.group.get(0);
             if (card instanceof BranchableUpgradeCard && HandOptFields.SelectingBranch.get(_inst) && CurrBranch >= 0) {
                 LMDebug.Log("Final chosen branch: " + CurrBranch);
-                ((BranchableUpgradeCard) card).setChosenBranch(CurrBranch);
+                if (Branches[Current] != null) {
+                    int branch = ((BranchableUpgradeCard) Branches[Current]).finalBranch();
+                    ((BranchableUpgradeCard) card).setChosenBranch(branch);
+                } else {
+                    ((BranchableUpgradeCard) card).setChosenBranch(CurrBranch);
+                }
             }
         }
         private static class Locator extends SpireInsertLocator {

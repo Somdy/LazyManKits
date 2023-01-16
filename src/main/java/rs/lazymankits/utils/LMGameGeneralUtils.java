@@ -231,6 +231,7 @@ public interface LMGameGeneralUtils {
     }
 
     default int countSpecificCards(@NotNull CardGroup group, Predicate<AbstractCard> expt) {
+        if (group.isEmpty()) return 0;
         int count = 0;
         for (AbstractCard card : group.group) {
             if (expt.test(card))

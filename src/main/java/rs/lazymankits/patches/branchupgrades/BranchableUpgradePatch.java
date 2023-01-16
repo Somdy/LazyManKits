@@ -113,8 +113,9 @@ public class BranchableUpgradePatch {
             LMDebug.Log(card.name + " has " + (Last + 1) + " upgrade branches");
             for (int i = 0; i < length; i++) {
                 AbstractCard previewCard = card.makeStatEquivalentCopy();
-//                ((BranchableUpgradeCard) previewCard).possibleBranches().get(i).upgrade();
                 ((BranchableUpgradeCard) previewCard).getPossibleBranches().get(i).upgrade();
+                if (!((BranchableUpgradeCard) previewCard).usingLocalBranch())
+                    ((BranchableUpgradeCard) previewCard).setChosenBranch(i);
                 previewCard.displayUpgrades();
                 Branches[i] = previewCard;
             }
@@ -372,7 +373,12 @@ public class BranchableUpgradePatch {
             AbstractCard card = GetHoveredCard();
             if (card instanceof BranchableUpgradeCard && OptFields.SelectingBranch.get(_inst) && CurrBranch >= 0) {
                 LMDebug.Log("Final chosen branch: " + CurrBranch);
-                ((BranchableUpgradeCard) card).setChosenBranch(CurrBranch);
+                if (Branches[Current] != null) {
+                    int branch = ((BranchableUpgradeCard) Branches[Current]).finalBranch();
+                    ((BranchableUpgradeCard) card).setChosenBranch(branch);
+                } else {
+                    ((BranchableUpgradeCard) card).setChosenBranch(CurrBranch);
+                }
             }
         }
         private static class Locator extends SpireInsertLocator {

@@ -23,6 +23,8 @@ public class DrawExptCardAction extends LMCustomGameAction {
     private boolean sorted;
     private boolean discardIncluded;
     private boolean clearHistory;
+    private boolean ignoreFullHand;
+    private boolean ignoreNoDrawPower;
     private Predicate<AbstractCard> expt;
     private TaoKe taokeAction;
     
@@ -35,6 +37,8 @@ public class DrawExptCardAction extends LMCustomGameAction {
         this.shuffleCheck = false;
         this.sorted = false;
         this.clearHistory = true;
+        this.ignoreFullHand = false;
+        this.ignoreNoDrawPower = false;
         actionType = ActionType.SPECIAL;
     }
     
@@ -60,9 +64,19 @@ public class DrawExptCardAction extends LMCustomGameAction {
         return this;
     }
     
+    public DrawExptCardAction ignoreFullHand(boolean ignoreFullHand) {
+        this.ignoreFullHand = ignoreFullHand;
+        return this;
+    }
+    
+    public DrawExptCardAction ignoreNoDrawPower(boolean ignoreNoDrawPower) {
+        this.ignoreNoDrawPower = ignoreNoDrawPower;
+        return this;
+    }
+    
     @Override
     public void update() {
-        if (cpr().hasPower(NoDrawPower.POWER_ID)) {
+        if (cpr().hasPower(NoDrawPower.POWER_ID) && !ignoreNoDrawPower) {
             cpr().getPower(NoDrawPower.POWER_ID).flash();
             isDone = true;
             executeFollowUpAction();
@@ -82,30 +96,29 @@ public class DrawExptCardAction extends LMCustomGameAction {
                 executeFollowUpAction();
                 return;
             }
-            if (cpr().hand.size() >= BaseMod.MAX_HAND_SIZE) {
+            if (cpr().hand.size() >= BaseMod.MAX_HAND_SIZE && !ignoreFullHand) {
                 cpr().createHandIsFullDialog();
                 isDone = true;
                 executeFollowUpAction();
                 return;
             }
             if (!shuffleCheck) {
-                if (amount + cpr().hand.size() > BaseMod.MAX_HAND_SIZE) {
+                if (amount + cpr().hand.size() > BaseMod.MAX_HAND_SIZE && !ignoreFullHand) {
                     int delta = BaseMod.MAX_HAND_SIZE - (amount + cpr().hand.size());
                     amount += delta;
                     LMDebug.Log("Manipulated draw amount: " + amount);
-                    cpr().createHandIsFullDialog();
                 }
-                if (amount > totalCards) {
+                if (amount > drawsize + discardsize) {
                     int oldAmount = amount;
-                    if (!discardIncluded) {
-                        amount = totalCards - discardsize;
-                    } else {
-                        amount = totalCards;
-                        addToTop(new DrawExptCardAction(source, amount, expt, taokeAction));
-                        addToTop(new EmptyDeckShuffleAction());
-                    }
+                    amount = drawsize + discardsize;
                     LMDebug.Log("Player wants [" + oldAmount + "] draws but has only [" + amount + "] draws");
                     LMDebug.Log("Discard pile included [" + discardIncluded + "]");
+                }
+                if (amount > drawsize) {
+                    addToTop(new DrawExptCardAction(source, amount, expt, taokeAction)
+                            .ignoreFullHand(ignoreFullHand)
+                            .ignoreNoDrawPower(ignoreNoDrawPower));
+                    addToTop(new EmptyDeckShuffleAction());
                     amount = 0;
                     isDone = true;
                     return;

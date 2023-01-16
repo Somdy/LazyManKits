@@ -79,6 +79,7 @@ public interface BranchableUpgradeCard extends CustomSavable<Map<String, String>
             int branch = chosenBranch();
             int localBranch = localBranch();
             if (branch != localBranch && usingLocalBranch()) {
+                LMDebug.Log(((AbstractCard) this).name + " using local branch [" + localBranch + "] different from chosen [" + branch + "]");
                 branch = localBranch;
             }
             return branch;
@@ -121,9 +122,7 @@ public interface BranchableUpgradeCard extends CustomSavable<Map<String, String>
     }
     
     default boolean usingLocalBranch() {
-        int branch = chosenBranch();
-        int localBranch = localBranch();
-        return branch != localBranch;
+        return false;
     }
     
     default void upgradeAndCorrectBranch() {
