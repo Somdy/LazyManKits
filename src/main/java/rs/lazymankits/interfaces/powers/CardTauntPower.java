@@ -2,17 +2,32 @@ package rs.lazymankits.interfaces.powers;
 
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
+import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
+import com.megacrit.cardcrawl.powers.AbstractPower;
+import org.apache.commons.lang3.NotImplementedException;
 
-public interface CardTauntPower {
+public interface CardTauntPower extends CardPlayablePower {
     /**
      * triggers when player tries to play a card at any monster except the owner of power
      * @param card the card player tries to use
      * @param p the player
      * @param m the target of the card, usually refers to the monster player tries to play at
      * @return true if the card can be used
-     * @apiNote to prevent the card can be used on the owner, use {@code CardProofPower} instead of this
      * @see CardProofPower
+     * @see CardPlayablePower
      */
     boolean canPlayerUseCardAtOthers(AbstractCard card, AbstractPlayer p, AbstractMonster m);
+    
+    @Override
+    default boolean canUseCard(AbstractCard card, AbstractPlayer p, AbstractMonster target) {
+        if (this instanceof AbstractPower) {
+            AbstractCreature owner = ((AbstractPower) this).owner;
+            if (owner != target) {
+                return canPlayerUseCardAtOthers(card, p, target);
+            }
+            return true;
+        }
+        throw new NotImplementedException(this + " NOT A POWER");
+    }
 }

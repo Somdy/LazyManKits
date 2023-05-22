@@ -13,6 +13,7 @@ import com.megacrit.cardcrawl.powers.AbstractPower;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import com.megacrit.cardcrawl.stances.AbstractStance;
 import org.jetbrains.annotations.NotNull;
+import rs.lazymankits.LMDebug;
 import rs.lazymankits.utils.LMGameGeneralUtils;
 
 import java.lang.reflect.Field;
@@ -60,15 +61,17 @@ public class CreatureStatus implements LMGameGeneralUtils {
     private void assignPlayerProperties() {
         if (who instanceof AbstractPlayer) {
             potionSlots = ((AbstractPlayer) who).potionSlots;
-            energyMaster = ((AbstractPlayer) who).energy.energyMaster;
             damageTakenThisCombat = ((AbstractPlayer) who).damagedThisCombat;
             drawpile = new CardGroup(((AbstractPlayer) who).drawPile, CardGroup.CardGroupType.DRAW_PILE);
             discardpile = new CardGroup(((AbstractPlayer) who).discardPile, CardGroup.CardGroupType.DISCARD_PILE);
             hand = new CardGroup(((AbstractPlayer) who).hand, CardGroup.CardGroupType.HAND);
             try {
+                energyMaster = ((AbstractPlayer) who).energy.energyMaster;
                 stance = ((AbstractPlayer) who).stance.getClass().newInstance();
             } catch (Exception e) {
+                energyMaster = 3;
                 stance = ((AbstractPlayer) who).stance;
+                LMDebug.Log("Player [" + ((AbstractPlayer) who).getLocalizedCharacterName() + "] different from others");
             }
             relics = new ArrayList<>(((AbstractPlayer) who).relics);
             potions = new ArrayList<>(((AbstractPlayer) who).potions);

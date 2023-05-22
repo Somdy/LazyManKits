@@ -8,6 +8,7 @@ import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.monsters.MonsterGroup;
+import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import rs.lazymankits.LManager;
 import rs.lazymankits.interfaces.LMSubscriber;
 
@@ -24,10 +25,9 @@ public class EndTurnHook {
         }
     }
 
-    @SpirePatch(clz = DiscardAtEndOfTurnAction.class, method = "update")
+    @SpirePatch(clz = AbstractRoom.class, method = "endTurn")
     public static class EndTurnPreDiscardHook {
-        @SpireInsertPatch(rloc = 3)
-        public static void Insert(DiscardAtEndOfTurnAction _inst) {
+        public static void Prefix(AbstractRoom _inst) {
             LMSubscriber.PublishEndTurnPreDiscard();
             LManager.ReceiveOnEndTurnPreDiscard();
         }

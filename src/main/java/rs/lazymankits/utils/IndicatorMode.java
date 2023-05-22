@@ -237,7 +237,8 @@ public class IndicatorMode implements LMGameGeneralUtils {
         public static class RenderInoptMonsterPatch {
             @SpirePrefixPatch
             public static void Prefix(AbstractMonster _inst, SpriteBatch sb) {
-                if (!_inst.isDeadOrEscaped() && !inopts.isEmpty()) {
+                if (LMSK.RoomChecker(MonsterRoom.class, AbstractRoom.RoomPhase.COMBAT) && 
+                        !_inst.isDeadOrEscaped() && !inopts.isEmpty()) {
                     if (inopts.contains(_inst)) {
                         CardCrawlGame.psb.setShader(grayShader);
                         sb.setShader(grayShader);
@@ -254,8 +255,7 @@ public class IndicatorMode implements LMGameGeneralUtils {
         public static class RenderInoptPlayerPatch {
             @SpirePrefixPatch
             public static void Prefix(AbstractPlayer _inst, SpriteBatch sb) {
-                if ((AbstractDungeon.getCurrRoom().phase == AbstractRoom.RoomPhase.COMBAT || AbstractDungeon.getCurrRoom() instanceof MonsterRoom)
-                        && !_inst.isDead) {
+                if (LMSK.RoomChecker(MonsterRoom.class, AbstractRoom.RoomPhase.COMBAT) && !_inst.isDead) {
                     if (!inopts.isEmpty() && inopts.contains(_inst)) {
                         CardCrawlGame.psb.setShader(grayShader);
                         sb.setShader(grayShader);

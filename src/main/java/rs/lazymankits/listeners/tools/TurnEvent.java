@@ -1,8 +1,5 @@
 package rs.lazymankits.listeners.tools;
 
-import com.megacrit.cardcrawl.actions.AbstractGameAction;
-import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
-import org.jetbrains.annotations.NotNull;
 import rs.lazymankits.LMDebug;
 
 import java.util.UUID;
@@ -16,29 +13,30 @@ public class TurnEvent {
     public final UUID uuid;
     public int delay;
     public int primaryDelay;
-    public int times;
-    public int turns;
+    public int times; // how many times this event can execute before it's removed
+    public int turns; // how many turns this event will last no matter it executes at least once or not
 
     public TurnEvent(Runnable action, int turns, Predicate<TurnEvent> castable, Predicate<TurnEvent> whenToRemove) {
         this.action = action;
         this.onRemove = null;
         this.turns = turns;
         this.primaryDelay = delay = 0;
+        times = 1;
         this.castable = castable;
         this.remove = whenToRemove;
         this.uuid = UUID.randomUUID();
     }
 
     public TurnEvent(Runnable action, int turns) {
-        this(action, turns, event -> event.delay < 0, e -> e.turns <= 0);
+        this(action, turns, event -> event.delay <= 0, e -> e.turns <= 0);
     }
 
     public TurnEvent(Runnable action) {
-        this(action, 0, event -> event.delay < 0, e -> e.turns <= 0);
+        this(action, 0, event -> event.delay <= 0, e -> e.turns <= 0);
     }
     
     public TurnEvent() {
-        this(null, 0, event -> event.delay < 0, e -> e.turns <= 0);
+        this(null, 0, event -> event.delay <= 0, e -> e.turns <= 0);
     }
     
     public TurnEvent setTimes(int times) {
@@ -60,6 +58,9 @@ public class TurnEvent {
         this.delay = delay;
         if (sameAsPrimary)
             this.setPrimaryDelay(delay);
+        if (this.delay > turns) {
+            LMDebug.Log("Event [" + uuid.toString() +  "] has more delay [" + this.delay + "] than its turns [" + turns + "]");
+        }
         return this;
     }
 
@@ -99,7 +100,7 @@ public class TurnEvent {
     }
 
     public boolean canCast() {
-        return delay <= 0;
+        return castable.test(this);
     }
 
     public boolean shouldRemove() {

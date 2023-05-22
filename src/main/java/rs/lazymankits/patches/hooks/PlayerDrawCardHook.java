@@ -10,6 +10,7 @@ import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.powers.AbstractPower;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
 import javassist.CtBehavior;
+import rs.lazymankits.LMDebug;
 import rs.lazymankits.interfaces.utilities.DrawCardAmountModifier;
 import rs.lazymankits.listeners.DrawCardListener;
 import rs.lazymankits.utils.LMSK;
@@ -40,7 +41,7 @@ public class PlayerDrawCardHook {
     @SpirePatch(clz = DrawCardAction.class, method = "update")
     public static class ModifyDrawCardAmountPatch {
         @SpirePrefixPatch
-        public static SpireReturn Prefix(AbstractGameAction _inst) throws Exception {
+        public static SpireReturn Prefix(DrawCardAction _inst) throws Exception {
             float tmpDur;
             if (Settings.FAST_MODE) {
                 tmpDur = Settings.ACTION_DUR_XFAST;
@@ -66,9 +67,15 @@ public class PlayerDrawCardHook {
                 if (card instanceof DrawCardAmountModifier && !modifiers.contains(card))
                     modifiers.add((DrawCardAmountModifier) card);
             }
-            Field clearHsty = _inst.getClass().getDeclaredField("clearDrawHistory");
-            clearHsty.setAccessible(true);
-            boolean clear = (Boolean) clearHsty.get(_inst);
+            boolean clear = false;
+            try {
+                Field clearHsty = DrawCardAction.class.getDeclaredField("clearDrawHistory");
+                clearHsty.setAccessible(true);
+                clear = (Boolean) clearHsty.get(_inst);
+            } catch (Exception e) {
+                LMDebug.Log("unable to find existing field [clearDrawHistory] in DrawCardAction.class, why?");
+                e.printStackTrace();
+            }
             if (clear && !modifiers.isEmpty()) {
                 int delta = _inst.amount;
                 for (DrawCardAmountModifier mod : modifiers)

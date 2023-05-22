@@ -6,6 +6,7 @@ import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import rs.lazymankits.LMDebug;
 import rs.lazymankits.LManager;
 import rs.lazymankits.listeners.tools.TurnEvent;
 import rs.lazymankits.listeners.tools.TurnStatus;
@@ -24,6 +25,7 @@ public class TurnEventListener {
     private static Map<Integer, TurnStatus> turnEndingStatus;
     
     public static List<TurnEvent> PlayerEndTurnPreDiscard;
+    public static List<TurnEvent> EndOfRoundEvents;
     
     public static final int[] LastTurn;
     public static final int[] CurrTurn;
@@ -41,6 +43,7 @@ public class TurnEventListener {
         turnEndingStatus = new HashMap<>();
         
         PlayerEndTurnPreDiscard = new ArrayList<>();
+        EndOfRoundEvents = new ArrayList<>();
     }
 
     public static void LoadAtBattleStarts(@NotNull AbstractRoom r) {
@@ -65,6 +68,7 @@ public class TurnEventListener {
     
     private static void clearLists() {
         PlayerEndTurnPreDiscard.clear();
+        EndOfRoundEvents.clear();
     }
 
     public static void TriggerEndOfTurnEvents(AbstractCreature creature) {
@@ -132,6 +136,10 @@ public class TurnEventListener {
         PlayerEndTurnPreDiscard.add(event);
     }
     
+    public static void AddNewEndRoundEvent(TurnEvent event) {
+        EndOfRoundEvents.add(event);
+    }
+    
     public static void TriggerEndTurnPreDiscard() {
         for (TurnEvent event : PlayerEndTurnPreDiscard) {
             if (event.canCast()) {
@@ -142,6 +150,24 @@ public class TurnEventListener {
             event.decrsTurns();
         }
         PlayerEndTurnPreDiscard.removeIf(e -> {
+            if (e.shouldRemove()) {
+                e.tackleOnRemove();
+                return true;
+            }
+            return false;
+        });
+    }
+    
+    public static void TriggerEndRoundEvents() {
+        for (TurnEvent event : EndOfRoundEvents) {
+            if (event.canCast()) {
+                event.execute();
+            } else {
+                event.decrsDelay();
+            }
+            event.decrsTurns();
+        }
+        EndOfRoundEvents.removeIf(e -> {
             if (e.shouldRemove()) {
                 e.tackleOnRemove();
                 return true;

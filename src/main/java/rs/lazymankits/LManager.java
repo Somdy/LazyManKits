@@ -5,6 +5,7 @@ import basemod.helpers.RelicType;
 import basemod.interfaces.*;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.cards.DamageInfo;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.core.Settings;
@@ -15,6 +16,7 @@ import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import rs.lazymankits.abstracts.DamageInfoTag;
 import rs.lazymankits.abstracts.LMDynamicVar;
 import rs.lazymankits.annotations.Encapsulated;
 import rs.lazymankits.cards.TestCard;
@@ -30,6 +32,7 @@ import rs.lazymankits.listeners.UseCardListener;
 import rs.lazymankits.managers.LMDynVarMgr;
 import rs.lazymankits.patches.cardmechanics.AdditionalSpawnCardPatch;
 import rs.lazymankits.relics.TestRelic;
+import rs.lazymankits.utils.LMDamageInfoHelper;
 import rs.lazymankits.utils.LMGameFps;
 import rs.lazymankits.utils.LMGameGeneralUtils;
 import rs.lazymankits.utils.LMKeyword;
@@ -129,6 +132,7 @@ public class LManager implements LMGameGeneralUtils, OnStartBattleSubscriber, Po
     
     public static void ReceiveAtEndOfRound() {
         DrawCardListener.UpdateAtEndOfRound();
+        TurnEventListener.TriggerEndRoundEvents();
     }
     
     public static void ReceiveOnInitialize() {

@@ -9,6 +9,7 @@ import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
 import com.megacrit.cardcrawl.random.Random;
+import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import com.megacrit.cardcrawl.unlock.UnlockTracker;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -165,6 +166,22 @@ public class LMSK {
 
     public static Optional<AbstractCard> ReturnTrulyRndCardInCombat() {
         return ReturnTrulyRndCardInCombat(c -> true);
+    }
+    
+    static boolean RoomChecker(Class<? extends AbstractRoom> clz, AbstractRoom.RoomPhase phase) {
+        return RoomAvailable() && clz.isInstance(AbstractDungeon.getCurrRoom()) && AbstractDungeon.getCurrRoom().phase == phase;
+    }
+    
+    static boolean RoomChecker(Class<? extends AbstractRoom> clz) {
+        return RoomAvailable() && clz.isInstance(AbstractDungeon.getCurrRoom());
+    }
+    
+    static boolean RoomChecker(AbstractRoom.RoomPhase phase) {
+        return RoomAvailable() && AbstractDungeon.getCurrRoom().phase == phase;
+    }
+    
+    static boolean RoomAvailable() {
+        return AbstractDungeon.getCurrMapNode() != null && AbstractDungeon.getCurrRoom() != null;
     }
 
     @Encapsulated

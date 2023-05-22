@@ -246,11 +246,11 @@ public class SingleCardViewBranchPatch {
         @SpireInsertPatch(locator = Locator.class, localvars = {"copy"})
         public static void Insert(SingleCardViewPopup _inst, SpriteBatch sb, @ByRef AbstractCard[] fakeCopy) {
             AbstractCard card = GetHoveredCard();
-            if (!ViewingUpgrade()) {
-                fakeCopy[0] = card.makeStatEquivalentCopy();
-                return;
-            }
-            if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch() && ViewingUpgrade()) {
+            if (card instanceof BranchableUpgradeCard && ((BranchableUpgradeCard) card).canBranch()) {
+                if (!ViewingUpgrade()) {
+                    fakeCopy[0] = card.makeStatEquivalentCopy();
+                    return;
+                }
                 if (Current < 0) {
                     CheckIfCardBranchable(_inst);
                     return;

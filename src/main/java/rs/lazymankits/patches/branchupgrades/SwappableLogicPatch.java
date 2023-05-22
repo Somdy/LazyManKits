@@ -339,8 +339,8 @@ public class SwappableLogicPatch {
         @SpirePrefixPatch
         public static void Prefix(GridCardSelectScreen _inst) {
             OptFields.SwappingBranch.set(_inst, false);
-            if (UsingSwappableLogic)
-                UsingSwappableLogic = false;
+//            if (UsingSwappableLogic)
+//                UsingSwappableLogic = false;
             //HandOptFields.ForBranchingUpgrades.set(_inst, false);
             CurrBranch = -1;
             Current = -1;
@@ -351,14 +351,16 @@ public class SwappableLogicPatch {
     public static class CloseScreeenCheck {
         @SpirePrefixPatch
         public static void Prefix() {
-            if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.GRID
-                    && OptFields.SwappingBranch.get(AbstractDungeon.gridSelectScreen)) {
+            if (AbstractDungeon.screen == AbstractDungeon.CurrentScreen.GRID && AbstractDungeon.gridSelectScreen.forUpgrade) {
                 OptFields.SwappingBranch.set(AbstractDungeon.gridSelectScreen, false);
-                if (UsingSwappableLogic)
+                if (UsingSwappableLogic) {
                     UsingSwappableLogic = false;
+                }
                 //HandOptFields.ForBranchingUpgrades.set(_inst, false);
                 CurrBranch = -1;
                 Current = -1;
+                LMDebug.Log("Ensuring swapping logic is disabled ["
+                        + OptFields.SwappingBranch.get(AbstractDungeon.gridSelectScreen) + ", " + UsingSwappableLogic + "]");
             }
         }
     }
