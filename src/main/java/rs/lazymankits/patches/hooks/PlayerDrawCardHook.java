@@ -69,11 +69,16 @@ public class PlayerDrawCardHook {
             }
             boolean clear = false;
             try {
-                Field clearHsty = DrawCardAction.class.getDeclaredField("clearDrawHistory");
-                clearHsty.setAccessible(true);
-                clear = (Boolean) clearHsty.get(_inst);
+                try {
+                    Field clearHsty = DrawCardAction.class.getDeclaredField("clearDrawHistory");
+                    clearHsty.setAccessible(true);
+                    clear = (Boolean) clearHsty.get(_inst);
+                } catch (Exception e) {
+                    LMDebug.Log("unable to find existing field [clearDrawHistory] in DrawCardAction.class, why?");
+                    e.printStackTrace();
+                }
             } catch (Exception e) {
-                LMDebug.Log("unable to find existing field [clearDrawHistory] in DrawCardAction.class, why?");
+                LMDebug.Log("An exception escaped from try/catch, so amazing");
                 e.printStackTrace();
             }
             if (clear && !modifiers.isEmpty()) {
