@@ -138,10 +138,22 @@ public class SimpleHandCardSelectBuilder extends LMCustomGameAction {
                 return;
             }
             if (p.hand.group.size() - removeList.size() <= amount && !anyNumber) {
+                LMDebug.Log("All available cards in hand just matches amount [" + amount + "]");
                 int index = 0;
                 List<AbstractCard> tmp = new ArrayList<>();
-                for (AbstractCard card : p.hand.group) {
-                    if (notToRemove.contains(card)) {
+//                for (AbstractCard card : p.hand.group) {
+//                    if (notToRemove.contains(card)) {
+//                        if (cm.manipulate(card, index)) {
+//                            LMDebug.Log("Returning the selected card to hand: " + card.name);
+//                        } else {
+//                            tmp.add(card);
+//                        }
+//                        index++;
+//                    }
+//                }
+                // to avoid a concurrent modification exception, don't iterate hand
+                for (AbstractCard card : notToRemove) {
+                    if (p.hand.contains(card)) {
                         if (cm.manipulate(card, index)) {
                             LMDebug.Log("Returning the selected card to hand: " + card.name);
                         } else {
