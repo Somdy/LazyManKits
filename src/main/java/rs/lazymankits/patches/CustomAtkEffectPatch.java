@@ -13,12 +13,19 @@ import rs.lazymankits.managers.LMCustomAtkEffectMgr;
 import java.lang.reflect.Field;
 
 public class CustomAtkEffectPatch {
+    private static Field efct;
+    static {
+        try {
+            efct = FlashAtkImgEffect.class.getDeclaredField("effect");
+            efct.setAccessible(true);
+        }
+        catch (Exception ignored) {}
+    }
+
     @SpirePatch(clz = FlashAtkImgEffect.class, method = "loadImage")
     public static class LoadImagePatch {
         @SpirePrefixPatch
         public static SpireReturn<TextureAtlas.AtlasRegion> Prefix(FlashAtkImgEffect _inst) throws Exception {
-            Field efct = _inst.getClass().getDeclaredField("effect");
-            efct.setAccessible(true);
             AbstractGameAction.AttackEffect effect = (AbstractGameAction.AttackEffect) efct.get(_inst);
             if (LMCustomAtkEffectMgr.Contains(effect)) {
                 return SpireReturn.Return(LMCustomAtkEffectMgr.GetImg(effect));
