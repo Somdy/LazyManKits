@@ -29,6 +29,7 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
     private boolean forTransform;
     private boolean forPurge;
     private boolean displayInOrder;
+    private boolean stopGlowing;
     private boolean gridOpened;
 
     @SafeVarargs
@@ -51,6 +52,7 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
         }
         tmpGroup = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
         displayInOrder = false;
+        stopGlowing = true;
         gridOpened = false;
         actionType = ActionType.CARD_MANIPULATION;
         duration = startDuration = Settings.ACTION_DUR_XFAST;
@@ -73,6 +75,7 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
         }
         tmpGroup = new CardGroup(CardGroup.CardGroupType.UNSPECIFIED);
         displayInOrder = false;
+        stopGlowing = true;
         gridOpened = false;
         actionType = ActionType.CARD_MANIPULATION;
         duration = startDuration = Settings.ACTION_DUR_XFAST;
@@ -152,6 +155,11 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
         this.forPurge = forPurge;
         return this;
     }
+    
+    public SimpleGridCardSelectBuilder stopGlowing(boolean stopGlowing) {
+        this.stopGlowing = stopGlowing;
+        return this;
+    }
 
     @Override
     public void update() {
@@ -166,8 +174,12 @@ public class SimpleGridCardSelectBuilder extends LMCustomGameAction {
                 if (cardGroups[i].isEmpty()) continue;
                 LMDebug.Log("Adding cards in group " + i + " to candidates list");
                 for (AbstractCard card : cardGroups[i].group) {
-                    if (displayInOrder) tmpGroup.addToBottom(card);
-                    else tmpGroup.addToRandomSpot(card);
+                    if (stopGlowing && card.isGlowing)
+                        card.stopGlowing();
+                    if (displayInOrder) 
+                        tmpGroup.addToBottom(card);
+                    else 
+                        tmpGroup.addToRandomSpot(card);
                 }
             }
             LMDebug.Log("Judging if the cards match any condition from [" + tmpGroup.size() + "] cards");
