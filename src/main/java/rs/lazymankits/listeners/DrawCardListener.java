@@ -32,6 +32,11 @@ public class DrawCardListener {
         CardsDrawnThisTurn.clear();
     }
     
+    public static void ClearOnBattleStart() {
+        CardsDrawnLastTurn.clear();
+        CardsDrawnThisTurn.clear();
+    }
+    
     public static void ClearPostBattle() {
         CardsDrawnLastTurn.clear();
         CardsDrawnLastBattleTurn.clear();

@@ -6,7 +6,7 @@
 
     <groupId>rs.lazymankits</groupId>
     <artifactId>LazyManKits</artifactId>
-    <version>1.0.1</version>
+    <version>1.4.12</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

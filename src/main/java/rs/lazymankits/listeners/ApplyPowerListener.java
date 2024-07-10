@@ -82,9 +82,16 @@ public class ApplyPowerListener {
         }
         return false;
     }
+    
+    public static void ClearOnBattleStart() {
+        manipulators.clear();
+        INDEX = 1;
+        LMDebug.deLog(ApplyPowerListener.class, "Clearing power manipulators");
+    }
 
     public static void ClearPostBattle() {
         manipulators.clear();
+        INDEX = 1;
     }
 
     public static AbstractPower OnApplyPower(@NotNull AbstractPower power, AbstractCreature target, AbstractCreature source) {

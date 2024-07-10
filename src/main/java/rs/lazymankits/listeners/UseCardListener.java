@@ -169,6 +169,12 @@ public class UseCardListener {
         }
     }
     
+    public static void ClearOnBattleStart() {
+        unplayableList.clear();
+        playCardEventsList.clear();
+        cardPlayedEventsList.clear();
+    }
+    
     public static void ClearPostBattle() {
         unplayableList.clear();
         playCardEventsList.clear();

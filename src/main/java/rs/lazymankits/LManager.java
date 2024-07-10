@@ -143,7 +143,14 @@ public class LManager implements LMGameGeneralUtils, OnStartBattleSubscriber, Po
     public static void CleanAfterJobsDone() {
         System.gc();
     }
+    
+    public static void ReceiveOnPreBattlePreparationForNoCharactersInvolved() {
+        ApplyPowerListener.ClearOnBattleStart();
+        DrawCardListener.ClearOnBattleStart();
+        UseCardListener.ClearOnBattleStart();
+    }
 
+    // This is called by basemod and sometimes it's too late for resetting things
     @Override
     public void receiveOnBattleStart(AbstractRoom r) {
         TurnEventListener.LoadAtBattleStarts(r);
